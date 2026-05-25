@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 
 class Base(DeclarativeBase):
@@ -15,6 +17,16 @@ def _make_engine():
     from aegisops_api.settings import get_settings  # noqa: PLC0415
 
     settings = get_settings()
+
+    # NullPool disables connection pooling, which avoids event-loop
+    # binding issues when running under pytest's anyio backend.
+    if os.getenv("AIOPS_TESTING") == "true":
+        return create_async_engine(
+            settings.database_url,
+            echo=False,
+            poolclass=NullPool,
+        )
+
     return create_async_engine(
         settings.database_url,
         echo=False,
