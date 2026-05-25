@@ -4,6 +4,7 @@ Import this module to get the configured Celery app:
 
     from aegisops_api.worker import celery_app
 """
+
 from __future__ import annotations
 
 from celery import Celery

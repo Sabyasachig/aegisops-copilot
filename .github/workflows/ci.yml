@@ -104,11 +104,7 @@ jobs:
         run: npm ci
         working-directory: apps/web
 
-      - name: TypeScript check
-        run: npm run typecheck
-        working-directory: apps/web
-
-      - name: Build
+      - name: Build (includes TypeScript type check)
         run: npm run build
         working-directory: apps/web
         env:

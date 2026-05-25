@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlalchemy import select
@@ -9,10 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import AgentRun, Incident
 from .orm_models import AgentRunRow, IncidentRow
 
-
 # ---------------------------------------------------------------------------
 # Conversion helpers
 # ---------------------------------------------------------------------------
+
 
 def _row_to_incident(row: IncidentRow) -> Incident:
     return Incident(
@@ -46,10 +46,9 @@ def _row_to_run(row: AgentRunRow) -> AgentRun:
 # Incident CRUD
 # ---------------------------------------------------------------------------
 
+
 async def list_incidents(db: AsyncSession) -> list[Incident]:
-    result = await db.execute(
-        select(IncidentRow).order_by(IncidentRow.created_at.desc())
-    )
+    result = await db.execute(select(IncidentRow).order_by(IncidentRow.created_at.desc()))
     return [_row_to_incident(r) for r in result.scalars()]
 
 
@@ -94,7 +93,7 @@ async def update_incident(
         row.summary = summary
     if open_actions is not None:
         row.open_actions = open_actions
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(row)
     return _row_to_incident(row)
@@ -103,6 +102,7 @@ async def update_incident(
 # ---------------------------------------------------------------------------
 # Agent run CRUD
 # ---------------------------------------------------------------------------
+
 
 async def list_runs_for_incident(db: AsyncSession, incident_id: str) -> list[AgentRun]:
     result = await db.execute(
@@ -138,15 +138,13 @@ async def complete_agent_run(
     summary: str,
     status: str = "done",
 ) -> AgentRun | None:
-    result = await db.execute(
-        select(AgentRunRow).where(AgentRunRow.id == run_id)
-    )
+    result = await db.execute(select(AgentRunRow).where(AgentRunRow.id == run_id))
     row = result.scalar_one_or_none()
     if row is None:
         return None
     row.status = status
     row.summary = summary
-    row.finished_at = datetime.now(timezone.utc)
+    row.finished_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(row)
     return _row_to_run(row)

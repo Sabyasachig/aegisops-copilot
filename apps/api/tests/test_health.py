@@ -1,4 +1,5 @@
 """Tests for GET /api/health."""
+
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
@@ -26,9 +27,7 @@ def test_health_postgres_ok(client: TestClient) -> None:
 
 def test_health_redis_ok(client: TestClient) -> None:
     body = client.get("/api/health").json()
-    assert body["checks"].get("redis") == "ok", (
-        f"redis check failed: {body['checks'].get('redis')}"
-    )
+    assert body["checks"].get("redis") == "ok", f"redis check failed: {body['checks'].get('redis')}"
 
 
 def test_health_overall_ok(client: TestClient) -> None:

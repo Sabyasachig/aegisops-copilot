@@ -3,6 +3,7 @@
 The actual LangGraph workflow is NOT executed in these tests — we patch the
 Celery task dispatch so the tests run fast and without LLM credentials.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch

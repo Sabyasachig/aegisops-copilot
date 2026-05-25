@@ -3,6 +3,7 @@
 ``POST /api/incidents/{id}/execute`` now returns a ``task_id`` immediately.
 Clients call ``GET /api/tasks/{task_id}`` to check progress.
 """
+
 from __future__ import annotations
 
 from celery.result import AsyncResult

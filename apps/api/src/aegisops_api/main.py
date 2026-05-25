@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,9 +23,9 @@ from .store import incidents as _seed_incidents  # seed data only
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # ── Startup ──────────────────────────────────────────────────────────────
-    await init_db()        # create tables if not present (Alembic owns this in prod)
-    await _seed_db()       # insert default incidents if the table is empty
-    get_redis()            # establish Redis connection pool
+    await init_db()  # create tables if not present (Alembic owns this in prod)
+    await _seed_db()  # insert default incidents if the table is empty
+    get_redis()  # establish Redis connection pool
     yield
     # ── Shutdown ─────────────────────────────────────────────────────────────
     await close_redis()
@@ -69,5 +69,6 @@ if __name__ == "__main__":
     import uvicorn
 
     settings = get_settings()
-    uvicorn.run("aegisops_api.main:app", host=settings.api_host, port=settings.api_port, reload=True)
-
+    uvicorn.run(
+        "aegisops_api.main:app", host=settings.api_host, port=settings.api_port, reload=True
+    )

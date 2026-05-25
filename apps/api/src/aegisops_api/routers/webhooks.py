@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -37,7 +37,7 @@ async def webhook_generic(
     db: AsyncSession = Depends(get_db),
 ) -> dict:  # type: ignore[type-arg]
     """Ingest an incident from any generic alerting tool."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     incident = Incident(
         id=payload.id,
         title=payload.title,
@@ -74,7 +74,7 @@ async def webhook_pagerduty(
     inc_data = ev.get("data", {})
     raw_id = str(inc_data.get("id", "unknown"))
     inc_id = f"PD-{raw_id[:8].upper()}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     assignees = inc_data.get("assignees") or [{}]
     incident = Incident(

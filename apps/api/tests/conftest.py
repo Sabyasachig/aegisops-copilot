@@ -3,6 +3,7 @@
 Sets env vars BEFORE any aegisops_api imports so that pydantic-settings
 reads the test values (lru_cache on get_settings() is reset below).
 """
+
 from __future__ import annotations
 
 import os

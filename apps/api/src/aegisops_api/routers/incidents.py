@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..cache import cache_delete, cache_get, cache_set
+from ..cache import cache_get, cache_set
 from ..db.engine import get_db
 from ..db.repository import get_incident as _get_incident
 from ..db.repository import list_incidents as _list_incidents

@@ -11,7 +11,9 @@ from .models import LLMProvider
 from .settings import get_settings
 
 
-def build_chat_model(provider: LLMProvider | None = None, model_name: str | None = None) -> BaseChatModel:
+def build_chat_model(
+    provider: LLMProvider | None = None, model_name: str | None = None
+) -> BaseChatModel:
     settings = get_settings()
     selected_provider = provider or settings.llm_provider
     selected_model = model_name or settings.llm_model
@@ -27,5 +29,7 @@ def build_chat_model(provider: LLMProvider | None = None, model_name: str | None
 
 
 @lru_cache(maxsize=8)
-def get_chat_model(provider: LLMProvider | None = None, model_name: str | None = None) -> BaseChatModel:
+def get_chat_model(
+    provider: LLMProvider | None = None, model_name: str | None = None
+) -> BaseChatModel:
     return build_chat_model(provider=provider, model_name=model_name)

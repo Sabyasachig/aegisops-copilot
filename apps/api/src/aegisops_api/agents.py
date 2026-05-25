@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import TypedDict
-
-from typing_extensions import NotRequired
+from typing import NotRequired, TypedDict
 from uuid import uuid4
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -71,7 +69,7 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
         )
         return {
             "runbook": runbook_text,
-            "next_action": f"Pull telemetry for {state['service']} and compare it with the latest deploy history."
+            "next_action": f"Pull telemetry for {state['service']} and compare it with the latest deploy history.",
         }
 
     def gather_evidence(state: IncidentOpsState) -> dict[str, str]:
@@ -83,7 +81,7 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
         )
         return {
             "evidence": evidence_text,
-            "next_action": f"Correlate incident {state['incident_id']} against logs, traces, and deployment metadata."
+            "next_action": f"Correlate incident {state['incident_id']} against logs, traces, and deployment metadata.",
         }
 
     def draft_response(state: IncidentOpsState) -> dict[str, str]:
@@ -101,7 +99,7 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
                 f"Runbook: {state.get('runbook', '')}\n"
                 f"Mitigation: {response_text}"
             ),
-            "next_action": "Present the mitigation draft to the human approver before any irreversible action."
+            "next_action": "Present the mitigation draft to the human approver before any irreversible action.",
         }
 
     def package_outcome(state: IncidentOpsState) -> dict[str, str]:
@@ -123,7 +121,9 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
 
 
 @traceable(name="incident-ops.run", run_type="chain")
-def run_incident_workflow(incident: Incident, provider: LLMProvider = "groq", model_name: str | None = None) -> IncidentOpsResult:
+def run_incident_workflow(
+    incident: Incident, provider: LLMProvider = "groq", model_name: str | None = None
+) -> IncidentOpsResult:
     graph = build_incident_graph(provider=provider, model_name=model_name)
     graph_run_id = f"graph_{uuid4().hex}"
     result = graph.invoke(
@@ -146,5 +146,5 @@ def run_incident_workflow(incident: Incident, provider: LLMProvider = "groq", mo
         "graph_run_id": graph_run_id,
         "status": "done",
         "summary": result.get("response_draft") or result.get("summary", ""),
-        "next_action": result.get("next_action", "Await human approval")
+        "next_action": result.get("next_action", "Await human approval"),
     }
