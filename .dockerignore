@@ -1,0 +1,10 @@
+node_modules
+.next
+coverage
+dist
+__pycache__
+.pytest_cache
+.ruff_cache
+.venv
+.git
+.DS_Store

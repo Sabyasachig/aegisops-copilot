@@ -1,0 +1,43 @@
+node_modules
+.turbo
+.next
+dist
+coverage
+.env
+.env.local
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+*.pyc
+.DS_Store
+
+# Python build artifacts
+*.egg-info
+*.egg
+build/
+dist/
+.eggs/
+
+# Alembic – never commit auto-generated __pycache__ inside versions
+apps/api/alembic/versions/__pycache__/
+
+# Database & cache volumes (docker named volumes, not committed)
+postgres_data/
+redis_data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+htmlcov/
+.coverage
+coverage.xml
+

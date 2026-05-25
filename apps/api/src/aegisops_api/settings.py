@@ -1,0 +1,30 @@
+from functools import lru_cache
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from .models import LLMProvider
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="AIOPS_", env_file=".env", extra="ignore")
+
+    app_name: str = "AegisOps Copilot API"
+    api_host: str = "0.0.0.0"
+    api_port: int = 4001
+    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    llm_provider: LLMProvider = "groq"
+    llm_model: str = "llama-3.1-8b-instant"
+    groq_api_key: str | None = None
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+    langsmith_api_key: str | None = None
+    langsmith_project: str = "aegisops-copilot"
+    langsmith_tracing: bool = True
+    database_url: str = "postgresql+asyncpg://aegisops:aegisops@localhost:5432/aegisops"
+    redis_url: str = "redis://localhost:6379/0"
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()
