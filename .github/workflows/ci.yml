@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs for the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Job 1: Lint Python ───────────────────────────────────────────────────
+  lint-api:
+    name: Lint (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install ruff
+        run: pip install "ruff>=0.6"
+
+      - name: ruff check (lint)
+        run: ruff check apps/api/src apps/api/tests
+
+      - name: ruff format (format check)
+        run: ruff format --check apps/api/src apps/api/tests
+
+  # ── Job 2: Test Python API ───────────────────────────────────────────────
+  test-api:
+    name: Test (Python API)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: aegisops
+          POSTGRES_PASSWORD: aegisops
+          POSTGRES_DB: aegisops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aegisops -d aegisops_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      AIOPS_DATABASE_URL: postgresql+asyncpg://aegisops:aegisops@localhost:5432/aegisops_test
+      AIOPS_REDIS_URL: redis://localhost:6379/0
+      AIOPS_CELERY_BROKER_URL: redis://localhost:6379/1
+      AIOPS_CELERY_RESULT_BACKEND: redis://localhost:6379/2
+      AIOPS_LANGSMITH_TRACING: "false"
+      # Dummy key so settings validation passes — no real LLM calls in tests
+      AIOPS_GROQ_API_KEY: dummy-test-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package + dev/test dependencies
+        run: pip install -e "apps/api[dev]"
+
+      - name: Run pytest
+        run: pytest apps/api/tests -v --tb=short
+
+  # ── Job 3: TypeScript + Build (Next.js) ──────────────────────────────────
+  ci-web:
+    name: CI (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: TypeScript check
+        run: npm run typecheck
+        working-directory: apps/web
+
+      - name: Build
+        run: npm run build
+        working-directory: apps/web
+        env:
+          # Prevent the build from trying to fetch the API at build time
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:4001
+
+  # ── Job 4: Docker build smoke test ───────────────────────────────────────
+  docker-build:
+    name: Docker build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/api
+          push: false
+          tags: aegisops-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/web
+          push: false
+          tags: aegisops-web:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
