@@ -4,6 +4,7 @@ All tasks run the LangGraph incident workflow as a background job so that the
 HTTP endpoint can return a ``202 Accepted`` immediately with a ``task_id``.
 Callers poll ``GET /api/tasks/{task_id}`` to check progress.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -35,7 +36,9 @@ def execute_incident_task(
     by ``GET /api/tasks/{task_id}``.
     """
     return asyncio.run(
-        _execute_async(incident_id=incident_id, run_id=run_id, provider=provider, model_name=model_name)
+        _execute_async(
+            incident_id=incident_id, run_id=run_id, provider=provider, model_name=model_name
+        )
     )
 
 

@@ -20,9 +20,7 @@ router = APIRouter(tags=["execution"])
         "Poll `GET /api/tasks/{task_id}` to check progress and retrieve the result."
     ),
 )
-async def execute_incident(
-    incident_id: str, db: AsyncSession = Depends(get_db)
-) -> EnqueueResponse:
+async def execute_incident(incident_id: str, db: AsyncSession = Depends(get_db)) -> EnqueueResponse:
     incident = await get_incident(db, incident_id)
     if incident is None:
         raise HTTPException(status_code=404, detail="Incident not found.")
@@ -51,4 +49,3 @@ async def execute_incident(
         incident_id=incident.id,
         poll_url=f"/api/tasks/{task.id}",
     )
-

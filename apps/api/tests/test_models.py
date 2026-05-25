@@ -1,7 +1,8 @@
 """Unit tests for Pydantic models — no services required."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -13,7 +14,7 @@ from aegisops_api.models import (
     TaskStatusResponse,
 )
 
-_NOW = datetime.now(tz=timezone.utc)
+_NOW = datetime.now(tz=UTC)
 
 
 def _sample_incident(**kwargs) -> dict:

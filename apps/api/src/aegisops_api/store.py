@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import count
-from uuid import uuid4
 
 from .models import AgentRun, Incident, IncidentStatus
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 incidents: list[Incident] = [
@@ -22,7 +21,7 @@ incidents: list[Incident] = [
         created_at=_utcnow(),
         updated_at=_utcnow(),
         summary="Consumer lag and retry depth increased immediately after the release window.",
-        open_actions=["Inspect deploy diff", "Check broker saturation", "Notify the owning team"]
+        open_actions=["Inspect deploy diff", "Check broker saturation", "Notify the owning team"],
     ),
     Incident(
         id="INC-2081",
@@ -34,7 +33,11 @@ incidents: list[Incident] = [
         created_at=_utcnow(),
         updated_at=_utcnow(),
         summary="Payment retries remain healthy, but the callback queue is backing up.",
-        open_actions=["Pause nonessential retries", "Inspect ledger consistency", "Review gateway status"]
+        open_actions=[
+            "Pause nonessential retries",
+            "Inspect ledger consistency",
+            "Review gateway status",
+        ],
     ),
     Incident(
         id="INC-2093",
@@ -46,8 +49,12 @@ incidents: list[Incident] = [
         created_at=_utcnow(),
         updated_at=_utcnow(),
         summary="A recent config change appears to have affected token validation for older clients.",
-        open_actions=["Verify identity provider status", "Compare config revisions", "Restore last known good key"]
-    )
+        open_actions=[
+            "Verify identity provider status",
+            "Compare config revisions",
+            "Restore last known good key",
+        ],
+    ),
 ]
 
 agent_runs: list[AgentRun] = [
@@ -59,7 +66,7 @@ agent_runs: list[AgentRun] = [
         started_at=_utcnow(),
         finished_at=_utcnow(),
         summary="Confirmed the latency spike is most likely tied to the release window and a consumer lag burst.",
-        artifact_url=None
+        artifact_url=None,
     ),
     AgentRun(
         id="RUN-1002",
@@ -69,8 +76,8 @@ agent_runs: list[AgentRun] = [
         started_at=_utcnow(),
         finished_at=None,
         summary="Collecting evidence for billing callback degradation.",
-        artifact_url=None
-    )
+        artifact_url=None,
+    ),
 ]
 
 _run_counter = count(2000)

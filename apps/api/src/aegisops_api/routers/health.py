@@ -1,5 +1,6 @@
-from fastapi import APIRouter
 import sqlalchemy
+from fastapi import APIRouter
+
 from ..cache import get_redis
 from ..db.engine import engine
 
