@@ -1,6 +1,6 @@
 COMPOSE ?= docker compose
 
-.PHONY: up down restart logs ps build start stop migrate migrate-down db-shell redis-cli
+.PHONY: up down restart logs ps build start stop migrate migrate-down db-shell redis-cli worker-logs
 
 start:
 	$(COMPOSE) up -d --build
@@ -40,3 +40,8 @@ db-shell:       ## Open an interactive psql shell
 
 redis-cli:      ## Open an interactive redis-cli shell
 	$(COMPOSE) exec redis redis-cli
+
+## ── Worker ──────────────────────────────────────────────────────────────────
+
+worker-logs:    ## Tail Celery worker logs
+	$(COMPOSE) logs -f worker

@@ -52,3 +52,29 @@ class ProviderInfo(BaseModel):
     provider: LLMProvider
     model_name: str
     tracing_enabled: bool
+
+
+# ── Async task queue models ───────────────────────────────────────────────────
+
+TaskState = Literal["PENDING", "STARTED", "SUCCESS", "FAILURE", "RETRY", "REVOKED"]
+
+
+class EnqueueResponse(BaseModel):
+    """Returned immediately (202) after enqueuing an incident workflow run."""
+
+    task_id: str
+    run_id: str
+    incident_id: str
+    status: Literal["queued"] = "queued"
+    poll_url: str
+
+
+class TaskStatusResponse(BaseModel):
+    """Returned by GET /api/tasks/{task_id}."""
+
+    task_id: str
+    state: TaskState
+    # Populated once state == "SUCCESS"
+    result: ExecuteIncidentResponse | None = None
+    # Populated once state == "FAILURE"
+    error: str | None = None

@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     langsmith_tracing: bool = True
     database_url: str = "postgresql+asyncpg://aegisops:aegisops@localhost:5432/aegisops"
     redis_url: str = "redis://localhost:6379/0"
+    celery_broker_url: str = "redis://localhost:6379/1"
+    celery_result_backend: str = "redis://localhost:6379/2"
 
 
 @lru_cache(maxsize=1)

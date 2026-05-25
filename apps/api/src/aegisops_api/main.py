@@ -14,6 +14,7 @@ from .routers.health import router as health_router
 from .routers.incidents import router as incidents_router
 from .routers.providers import router as providers_router
 from .routers.runs import router as runs_router
+from .routers.tasks import router as tasks_router
 from .routers.webhooks import router as webhooks_router
 from .settings import get_settings
 from .store import incidents as _seed_incidents  # seed data only
@@ -54,6 +55,7 @@ def create_app() -> FastAPI:
     app.include_router(incidents_router, prefix="/api")
     app.include_router(runs_router, prefix="/api")
     app.include_router(execute_router, prefix="/api")
+    app.include_router(tasks_router, prefix="/api")
     app.include_router(providers_router, prefix="/api")
     app.include_router(webhooks_router, prefix="/api")
 
