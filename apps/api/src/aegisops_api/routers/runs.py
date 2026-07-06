@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..auth import get_current_user
 from ..db.engine import get_db
 from ..db.repository import list_runs_for_incident as _list_runs
 
-router = APIRouter(tags=["runs"])
+router = APIRouter(tags=["runs"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/runs/{incident_id}")
