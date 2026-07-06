@@ -31,8 +31,8 @@ AegisOps Copilot is a multi-agent AI ops platform designed for SREs, DevOps engi
                                │ REST / WebSocket
                 ┌──────────────▼──────────────────────────┐
                 │         FastAPI Control Plane            │
-                │  /api/incidents  /api/runs  /api/execute │
-                │  /api/webhooks   /api/providers          │
+                │  /api/auth   /api/incidents  /api/runs   │
+                │  /api/execute  /api/webhooks /api/health │
                 └───┬──────────────┬───────────────────────┘
                     │              │
           ┌─────────▼──────┐  ┌───▼──────────────────────┐
@@ -73,12 +73,14 @@ aegisops-copilot/
 │   │   ├── src/aegisops_api/
 │   │   │   ├── main.py              # App factory + lifespan (DB init, seeding)
 │   │   │   ├── agents.py            # LangGraph 4-node incident workflow
+│   │   │   ├── auth.py              # JWT helpers + get_current_user dependency
 │   │   │   ├── llm.py               # Multi-provider LLM factory
 │   │   │   ├── models.py            # Pydantic models
 │   │   │   ├── settings.py          # Pydantic-settings (env vars)
 │   │   │   ├── cache.py             # Async Redis helpers
 │   │   │   ├── store.py             # Seed data
 │   │   │   └── routers/
+│   │   │       ├── auth.py          # POST /api/auth/token|refresh
 │   │   │       ├── health.py        # GET /api/health (checks PG + Redis)
 │   │   │       ├── incidents.py     # GET /api/incidents, /api/incidents/{id}
 │   │   │       ├── runs.py          # GET /api/runs/{incident_id}
@@ -87,7 +89,7 @@ aegisops-copilot/
 │   │   │       └── webhooks.py      # POST /api/webhooks/generic|pagerduty
 │   │   │   └── db/
 │   │   │       ├── engine.py        # Async SQLAlchemy engine + session
-│   │   │       ├── orm_models.py    # IncidentRow, AgentRunRow ORM
+│   │   │       ├── orm_models.py    # IncidentRow, AgentRunRow, UserRow ORM
 │   │   │       └── repository.py   # Async CRUD functions
 │   │   ├── alembic/                 # Database migrations
 │   │   └── pyproject.toml
@@ -157,16 +159,23 @@ make redis-cli    # Open interactive redis-cli
 
 ## API Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check (PostgreSQL + Redis status) |
-| `GET` | `/api/incidents` | List all incidents (Redis-cached, 60s TTL) |
-| `GET` | `/api/incidents/{id}` | Get a single incident |
-| `POST` | `/api/incidents/{id}/execute` | Trigger LangGraph agent workflow |
-| `GET` | `/api/runs/{incident_id}` | List all agent runs for an incident |
-| `GET` | `/api/providers` | List available LLM providers |
-| `POST` | `/api/webhooks/generic` | Ingest incident from any alerting tool |
-| `POST` | `/api/webhooks/pagerduty` | Ingest PagerDuty v3 webhook |
+> All endpoints except `/api/health`, `/api/auth/token`, `/api/auth/refresh`, and `/api/webhooks/*` require a `Authorization: Bearer <token>` header.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/health` | public | Health check (PostgreSQL + Redis status) |
+| `POST` | `/api/auth/token` | public | Login — returns access + refresh token pair |
+| `POST` | `/api/auth/refresh` | public | Exchange refresh token for new access token |
+| `GET` | `/api/incidents` | 🔒 | List all incidents (Redis-cached, 60s TTL) |
+| `GET` | `/api/incidents/{id}` | 🔒 | Get a single incident |
+| `POST` | `/api/incidents/{id}/execute` | 🔒 | Trigger LangGraph agent workflow |
+| `GET` | `/api/runs/{incident_id}` | 🔒 | List all agent runs for an incident |
+| `GET` | `/api/tasks/{task_id}` | 🔒 | Poll async task status |
+| `GET` | `/api/providers` | 🔒 | List available LLM providers |
+| `POST` | `/api/webhooks/generic` | public* | Ingest incident from any alerting tool |
+| `POST` | `/api/webhooks/pagerduty` | public* | Ingest PagerDuty v3 webhook |
+
+\* Webhook endpoints are public but will be secured with HMAC signature validation (Issue #3).
 
 Full interactive docs at **http://localhost:4001/docs**
 
@@ -244,6 +253,11 @@ curl -X POST http://localhost:4001/api/webhooks/generic \
 | `AIOPS_LLM_MODEL` | `llama-3.1-8b-instant` | Model name |
 | `AIOPS_DATABASE_URL` | *(postgres container)* | Async PostgreSQL URL |
 | `AIOPS_REDIS_URL` | *(redis container)* | Redis URL |
+| `AIOPS_JWT_SECRET_KEY` | *(dev default)* | Secret for signing JWTs — **change in production** |
+| `AIOPS_JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token TTL in minutes |
+| `AIOPS_JWT_REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token TTL in days |
+| `AIOPS_INITIAL_ADMIN_USERNAME` | `admin` | Username seeded on first startup |
+| `AIOPS_INITIAL_ADMIN_PASSWORD` | `changeme` | Password seeded on first startup — **change in production** |
 | `GROQ_API_KEY` | — | Groq API key |
 | `OPENAI_API_KEY` | — | OpenAI API key |
 | `ANTHROPIC_API_KEY` | — | Anthropic API key |
