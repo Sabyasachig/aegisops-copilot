@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import AgentRun, Incident
-from .orm_models import AgentRunRow, IncidentRow
+from .orm_models import AgentRunRow, IncidentRow, UserRow
 
 # ---------------------------------------------------------------------------
 # Conversion helpers
@@ -148,3 +148,25 @@ async def complete_agent_run(
     await db.commit()
     await db.refresh(row)
     return _row_to_run(row)
+
+
+# ---------------------------------------------------------------------------
+# User CRUD
+# ---------------------------------------------------------------------------
+
+
+async def get_user_by_username(db: AsyncSession, username: str) -> UserRow | None:
+    result = await db.execute(select(UserRow).where(UserRow.username == username))
+    return result.scalar_one_or_none()
+
+
+async def create_user(db: AsyncSession, username: str, hashed_password: str) -> UserRow:
+    row = UserRow(
+        id=str(uuid4()),
+        username=username,
+        hashed_password=hashed_password,
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+    return row

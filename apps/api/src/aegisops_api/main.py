@@ -8,7 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .cache import close_redis, get_redis
 from .db.engine import AsyncSessionLocal, init_db
-from .db.repository import create_incident, get_incident
+from .db.repository import create_incident, create_user, get_incident, get_user_by_username
+from .routers.auth import router as auth_router
 from .routers.execute import router as execute_router
 from .routers.health import router as health_router
 from .routers.incidents import router as incidents_router
@@ -32,11 +33,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 async def _seed_db() -> None:
-    """Insert the bundled sample incidents the first time the DB is empty."""
+    """Insert bundled sample incidents and the initial admin user on first run."""
+    from .auth import hash_password  # local import avoids circular dependency at load time
+
+    settings = get_settings()
     async with AsyncSessionLocal() as db:
         for incident in _seed_incidents:
             if await get_incident(db, incident.id) is None:
                 await create_incident(db, incident)
+        # Seed initial admin user if not already present
+        if await get_user_by_username(db, settings.initial_admin_username) is None:
+            await create_user(
+                db,
+                settings.initial_admin_username,
+                hash_password(settings.initial_admin_password),
+            )
 
 
 def create_app() -> FastAPI:
@@ -52,6 +63,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(health_router, prefix="/api")
+    app.include_router(auth_router, prefix="/api")
     app.include_router(incidents_router, prefix="/api")
     app.include_router(runs_router, prefix="/api")
     app.include_router(execute_router, prefix="/api")

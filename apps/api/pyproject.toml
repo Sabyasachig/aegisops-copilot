@@ -24,7 +24,9 @@ dependencies = [
   "asyncpg>=0.29",
   "alembic>=1.13",
   "redis[hiredis]>=5.0",
-  "celery[redis]>=5.4"
+  "celery[redis]>=5.4",
+  "python-jose[cryptography]>=3.3",
+  "bcrypt>=4.0"
 ]
 
 [project.optional-dependencies]

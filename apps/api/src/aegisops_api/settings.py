@@ -25,6 +25,14 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/2"
+    # JWT settings
+    jwt_secret_key: str = "dev-secret-change-in-production-aegisops-copilot-jwt-key"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 30
+    jwt_refresh_token_expire_days: int = 7
+    # Initial admin credentials (override via env in production)
+    initial_admin_username: str = "admin"
+    initial_admin_password: str = "changeme"
 
 
 @lru_cache(maxsize=1)

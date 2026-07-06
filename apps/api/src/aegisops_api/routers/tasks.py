@@ -7,12 +7,13 @@ Clients call ``GET /api/tasks/{task_id}`` to check progress.
 from __future__ import annotations
 
 from celery.result import AsyncResult
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from ..auth import get_current_user
 from ..models import ExecuteIncidentResponse, TaskStatusResponse
 from ..worker import celery_app
 
-router = APIRouter(tags=["tasks"])
+router = APIRouter(tags=["tasks"], dependencies=[Depends(get_current_user)])
 
 
 @router.get(

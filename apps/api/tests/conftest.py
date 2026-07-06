@@ -18,6 +18,7 @@ os.environ.setdefault("AIOPS_REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("AIOPS_CELERY_BROKER_URL", "redis://localhost:6379/1")
 os.environ.setdefault("AIOPS_CELERY_RESULT_BACKEND", "redis://localhost:6379/2")
 os.environ.setdefault("AIOPS_LANGSMITH_TRACING", "false")
+os.environ.setdefault("AIOPS_INITIAL_ADMIN_PASSWORD", "testpass123")
 # Use NullPool so asyncpg doesn't bind to the wrong event loop under anyio
 os.environ["AIOPS_TESTING"] = "true"
 
@@ -48,3 +49,16 @@ def client():
     app = create_app()
     with TestClient(app, raise_server_exceptions=True) as tc:
         yield tc
+
+
+@pytest.fixture(scope="module")
+def authed_client(client: TestClient) -> TestClient:
+    """TestClient pre-configured with a valid Bearer token for the seeded admin user."""
+    resp = client.post(
+        "/api/auth/token",
+        json={"username": "admin", "password": "testpass123"},
+    )
+    assert resp.status_code == 200, f"Failed to obtain test token: {resp.text}"
+    token = resp.json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+    return client
