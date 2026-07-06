@@ -230,18 +230,23 @@ Every run is traced in [LangSmith](https://smith.langchain.com) when `LANGSMITH_
 Send incidents from any alerting tool directly into the platform:
 
 ```bash
-# Generic webhook
+# Compute HMAC signature (when AIOPS_WEBHOOK_SECRET is set)
+SECRET="your-webhook-secret"
+BODY='{"id":"INC-9999","title":"API gateway 502","service":"api-gateway","severity":"critical","owner":"platform-team"}'
+SIG="sha256=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')"
+
 curl -X POST http://localhost:4001/api/webhooks/generic \
   -H "Content-Type: application/json" \
-  -d '{
-    "id": "INC-9999",
-    "title": "API gateway 502 rate exceeding threshold",
-    "service": "api-gateway",
-    "severity": "critical",
-    "owner": "platform-team",
-    "summary": "502 error rate jumped from 0.1% to 8% after last deploy"
-  }'
+  -H "X-Webhook-Signature: $SIG" \
+  -d "$BODY"
 ```
+
+When `AIOPS_WEBHOOK_SECRET` is **not** set, signature verification is skipped (useful for local development).
+
+| Endpoint | Signature header | Format |
+|---|---|---|
+| `/api/webhooks/generic` | `X-Webhook-Signature` | `sha256=<hmac-hex>` |
+| `/api/webhooks/pagerduty` | `X-PagerDuty-Signature` | `v1=<hmac-hex>` (PagerDuty native) |
 
 ---
 
