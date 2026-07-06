@@ -19,6 +19,7 @@ os.environ.setdefault("AIOPS_CELERY_BROKER_URL", "redis://localhost:6379/1")
 os.environ.setdefault("AIOPS_CELERY_RESULT_BACKEND", "redis://localhost:6379/2")
 os.environ.setdefault("AIOPS_LANGSMITH_TRACING", "false")
 os.environ.setdefault("AIOPS_INITIAL_ADMIN_PASSWORD", "testpass123")
+os.environ.setdefault("AIOPS_WEBHOOK_SECRET", "test-webhook-secret-aegisops-hmac")
 # Use NullPool so asyncpg doesn't bind to the wrong event loop under anyio
 os.environ["AIOPS_TESTING"] = "true"
 

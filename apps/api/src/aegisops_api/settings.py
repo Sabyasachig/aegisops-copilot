@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # Initial admin credentials (override via env in production)
     initial_admin_username: str = "admin"
     initial_admin_password: str = "changeme"
+    # Webhook HMAC secret — set to enable signature verification on all webhook endpoints
+    webhook_secret: str | None = None
 
 
 @lru_cache(maxsize=1)
