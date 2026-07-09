@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     initial_admin_password: str = "changeme"
     # Webhook HMAC secret — set to enable signature verification on all webhook endpoints
     webhook_secret: str | None = None
+    # Rate limiting — slowapi / limits format: "<count>/<period>"
+    # period examples: second, minute, hour, day
+    rate_limit_storage_uri: str = "redis://localhost:6379/3"
+    rate_limit_execute_ip: str = "10/minute"    # per client IP on the execute endpoint
+    rate_limit_execute_user: str = "20/minute"  # per authenticated user on the execute endpoint
 
 
 @lru_cache(maxsize=1)

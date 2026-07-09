@@ -20,6 +20,11 @@ os.environ.setdefault("AIOPS_CELERY_RESULT_BACKEND", "redis://localhost:6379/2")
 os.environ.setdefault("AIOPS_LANGSMITH_TRACING", "false")
 os.environ.setdefault("AIOPS_INITIAL_ADMIN_PASSWORD", "testpass123")
 os.environ.setdefault("AIOPS_WEBHOOK_SECRET", "test-webhook-secret-aegisops-hmac")
+# Rate limiting: use in-memory storage (no Redis) with very high limits so
+# normal tests are never rate-limited.  test_rate_limit.py overrides these.
+os.environ.setdefault("AIOPS_RATE_LIMIT_STORAGE_URI", "memory://")
+os.environ.setdefault("AIOPS_RATE_LIMIT_EXECUTE_IP", "1000/minute")
+os.environ.setdefault("AIOPS_RATE_LIMIT_EXECUTE_USER", "2000/minute")
 # Use NullPool so asyncpg doesn't bind to the wrong event loop under anyio
 os.environ["AIOPS_TESTING"] = "true"
 
