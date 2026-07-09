@@ -9,6 +9,7 @@ SeverityLevel = Literal["critical", "high", "medium", "low", "info"]
 IncidentStatus = Literal["triage", "investigating", "mitigating", "resolved"]
 RunStatus = Literal["queued", "running", "done", "blocked"]
 LLMProvider = Literal["groq", "openai", "anthropic"]
+UserRole = Literal["viewer", "operator", "admin"]
 
 
 class Incident(BaseModel):

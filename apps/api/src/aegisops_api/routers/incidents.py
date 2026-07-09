@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..auth import get_current_user
-from ..cache import cache_get, cache_set
+from ..auth import get_current_user, require_admin
+from ..cache import cache_delete, cache_get, cache_set
 from ..db.engine import get_db
+from ..db.repository import delete_incident as _delete_incident
 from ..db.repository import get_incident as _get_incident
 from ..db.repository import list_incidents as _list_incidents
 
@@ -33,3 +34,20 @@ async def incident(incident_id: str, db: AsyncSession = Depends(get_db)) -> dict
     serialized = data.model_dump(mode="json")
     await cache_set(cache_key, serialized, ttl=60)
     return {"incident": serialized, "source": "db"}
+
+
+@router.delete(
+    "/incidents/{incident_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin)],
+    summary="Delete an incident (admin only)",
+)
+async def delete_incident(
+    incident_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    found = await _delete_incident(db, incident_id)
+    if not found:
+        raise HTTPException(status_code=404, detail="Incident not found.")
+    await cache_delete("incidents:all")
+    await cache_delete(f"incident:{incident_id}")

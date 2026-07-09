@@ -160,13 +160,36 @@ async def get_user_by_username(db: AsyncSession, username: str) -> UserRow | Non
     return result.scalar_one_or_none()
 
 
-async def create_user(db: AsyncSession, username: str, hashed_password: str) -> UserRow:
+async def create_user(
+    db: AsyncSession,
+    username: str,
+    hashed_password: str,
+    role: str = "viewer",
+) -> UserRow:
     row = UserRow(
         id=str(uuid4()),
         username=username,
         hashed_password=hashed_password,
+        role=role,
     )
     db.add(row)
     await db.commit()
     await db.refresh(row)
     return row
+
+
+async def update_user_role(db: AsyncSession, user_id: str, role: str) -> None:
+    row = await db.get(UserRow, user_id)
+    if row is not None:
+        row.role = role
+        await db.commit()
+
+
+async def delete_incident(db: AsyncSession, incident_id: str) -> bool:
+    """Delete an incident and cascade-delete its runs. Returns True if found."""
+    row = await db.get(IncidentRow, incident_id)
+    if row is None:
+        return False
+    await db.delete(row)
+    await db.commit()
+    return True

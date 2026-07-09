@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..auth import get_current_user
+from ..auth import require_operator
 from ..db.engine import get_db
 from ..db.repository import create_agent_run, get_incident
 from ..models import EnqueueResponse
 from ..settings import get_settings
 from ..tasks import execute_incident_task
 
-router = APIRouter(tags=["execution"], dependencies=[Depends(get_current_user)])
+router = APIRouter(tags=["execution"], dependencies=[Depends(require_operator)])
 
 
 @router.post(
