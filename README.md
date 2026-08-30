@@ -261,6 +261,8 @@ When `AIOPS_WEBHOOK_SECRET` is **not** set, signature verification is skipped (u
 | `AIOPS_JWT_SECRET_KEY` | *(dev default)* | Secret for signing JWTs — **change in production** |
 | `AIOPS_JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token TTL in minutes |
 | `AIOPS_JWT_REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token TTL in days |
+| `AIOPS_LOG_FORMAT` | `auto` | Logging renderer: `auto`, `json`, or `console` |
+| `AIOPS_LOG_LEVEL` | `INFO` | Root logging level |
 | `AIOPS_INITIAL_ADMIN_USERNAME` | `admin` | Username seeded on first startup |
 | `AIOPS_INITIAL_ADMIN_PASSWORD` | `changeme` | Password seeded on first startup — **change in production** |
 | `GROQ_API_KEY` | — | Groq API key |
@@ -271,9 +273,33 @@ When `AIOPS_WEBHOOK_SECRET` is **not** set, signature verification is skipped (u
 
 ---
 
+## Structured Logging
+
+The API and worker now emit structured logs using `structlog`.
+
+- `AIOPS_LOG_FORMAT=auto` renders JSON in production and console logs in development.
+- Context fields are attached where available: `request_id`, `incident_id`, `run_id`, `user_id`.
+- Workflow observability events include node transitions and LLM call durations.
+
+---
+
+## Session Workflow (No Repeated Overview Needed)
+
+To continue work in a new session without repeating project context, start with:
+
+1. `execute-steps.md`
+2. `.copilot/current-state.md`
+3. `.github/workflows/copilot-instructions.md`
+4. `FUTURE_SCOPE.md`
+
+This captures current implementation state, active issue, branch workflow, PR requirements, and post-merge updates.
+
+---
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)
 - [Product Plan](docs/product-plan.md)
 - [Future Scope](FUTURE_SCOPE.md)
+- [Execution Playbook](execute-steps.md)
 
