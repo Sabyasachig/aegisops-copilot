@@ -14,6 +14,7 @@ latest known state without rediscovery.
 - Issue #5 (Async task queue): implemented
 - Issue #6 (SSE real-time agent progress): merged to `main` via PR #31
 - Issue #7 (Structured logging): merged to `main` via PR #30
+- Issue #8 (Prometheus Metrics + Grafana Dashboard): merged to `main` via PR #32
 
 ### PR status for Issue #7
 
@@ -22,20 +23,17 @@ latest known state without rediscovery.
 
 ### Current active implementation
 
-- Issue #8: Prometheus Metrics + Grafana Dashboard
-- Active branch: `feat/issue-8-prometheus-grafana-observability`
-- Status: implemented, PR open
-- PR: `#32` https://github.com/Sabyasachig/aegisops-copilot/pull/32
-- Validation: `21 passed, 1 warning` on targeted backend suite
+- none
 
 ### Recently completed
 
+- Issue #8: merged PR `#32` and issue closed
+- Validation: `21 passed, 1 warning` on targeted tests (`test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`)
 - Issue #6: merged PR `#31` and issue closed
 - Validation: `23 passed` on targeted tests (`test_events`, `test_incidents`, `test_execute`, `test_logging`)
 
 ### Open issues currently visible on GitHub
 
-- #8 Prometheus Metrics + Grafana Dashboard
 - #9 OpenTelemetry Distributed Tracing
 - #10 Circuit Breaker for LLM Providers
 - #11 Human-in-the-Loop Approval Gate
