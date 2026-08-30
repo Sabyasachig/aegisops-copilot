@@ -31,6 +31,7 @@ from .routers.tasks import router as tasks_router
 from .routers.webhooks import router as webhooks_router
 from .settings import get_settings
 from .store import incidents as _seed_incidents  # seed data only
+from .tracing import instrument_fastapi
 
 
 @asynccontextmanager
@@ -121,6 +122,8 @@ def create_app() -> FastAPI:
         should_respect_env_var=False,
         excluded_handlers=["/api/health"],
     ).instrument(app).expose(app, include_in_schema=False)
+
+    instrument_fastapi(app, settings)
 
     return app
 
