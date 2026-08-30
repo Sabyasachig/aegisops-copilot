@@ -22,7 +22,8 @@ Last updated: 2026-08-31
 - Issue #6 SSE implementation
 - branch: `feat/issue-6-sse-realtime-progress`
 - focus: add SSE endpoint and stream node_started, node_completed, workflow_done events
-- status: implemented locally, tests passing, pending PR creation
+- status: implemented, PR open
+- PR: `#31` https://github.com/Sabyasachig/aegisops-copilot/pull/31
 - validation: `23 passed` across `test_events`, `test_incidents`, `test_execute`, `test_logging`
 
 ## Open Issues Snapshot

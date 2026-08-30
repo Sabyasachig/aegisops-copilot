@@ -23,7 +23,8 @@ latest known state without rediscovery.
 
 - Issue #6: Server-Sent Events (SSE) for real-time agent progress
 - Active branch: `feat/issue-6-sse-realtime-progress`
-- Status: implemented locally, pending PR
+- Status: implemented, PR open
+- PR: `#31` https://github.com/Sabyasachig/aegisops-copilot/pull/31
 - Validation: `23 passed` on targeted tests (`test_events`, `test_incidents`, `test_execute`, `test_logging`)
 
 ### Open issues currently visible on GitHub
