@@ -23,7 +23,7 @@ Do not ask for a project overview if these files are available.
 - SSE incident progress streaming (Issue #6) is merged to `main` via PR #31.
 - Structured logging (Issue #7) is merged to `main` via PR #30.
 - Prometheus + Grafana observability (Issue #8) is merged to `main` via PR #32.
-- OpenTelemetry distributed tracing (Issue #9) is implemented on feature branch and pending PR.
+- OpenTelemetry distributed tracing (Issue #9) is implemented and in PR #33.
 - Issue #7 is closed.
 - Issue #6 is closed.
 - Issue #8 is closed.
@@ -105,5 +105,5 @@ Result: `21 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Open PR for Issue #9 using branch `feat/issue-9-opentelemetry-distributed-tracing`.
-2. Include `Closes #9` and test evidence (`23 passed, 1 warning`) in PR body.
+1. Review and merge PR #33: https://github.com/Sabyasachig/aegisops-copilot/pull/33
+2. After merge, verify Issue #9 auto-closes and update continuity files to merged state.

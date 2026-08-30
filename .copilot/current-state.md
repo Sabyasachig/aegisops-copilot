@@ -24,6 +24,7 @@ Last updated: 2026-08-31
 - Issue #9 OpenTelemetry distributed tracing
 - branch: `feat/issue-9-opentelemetry-distributed-tracing`
 - status: implemented locally, pending PR
+- PR: `#33` https://github.com/Sabyasachig/aegisops-copilot/pull/33
 - validation: `23 passed` across `test_tracing`, `test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`
 
 ## Open Issues Snapshot
