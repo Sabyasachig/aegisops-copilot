@@ -137,6 +137,7 @@ For observability (Issue #8), the Compose stack also includes:
 
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3001 (default login: `admin` / `admin`)
+- **Jaeger**: http://localhost:16686
 
 ### 3. Open the dashboard
 - **UI:** http://localhost:3000
@@ -272,6 +273,10 @@ When `AIOPS_WEBHOOK_SECRET` is **not** set, signature verification is skipped (u
 | `AIOPS_LOG_LEVEL` | `INFO` | Root logging level |
 | `AIOPS_SSE_KEEPALIVE_SECONDS` | `15` | SSE keepalive comment interval in seconds |
 | `AIOPS_SSE_STREAM_POLL_SECONDS` | `1` | Redis pub/sub poll timeout for SSE stream loop |
+| `AIOPS_TRACING_ENABLED` | `false` | Enables OpenTelemetry tracing for API and worker |
+| `AIOPS_OTEL_SERVICE_NAME` | `aegisops-api` | Service name sent in trace resource attributes |
+| `AIOPS_OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4318/v1/traces` | OTLP HTTP endpoint for exporting traces |
+| `AIOPS_OTEL_EXCLUDED_URLS` | `/api/health,/metrics` | Comma-separated URL patterns excluded from tracing |
 | `AIOPS_INITIAL_ADMIN_USERNAME` | `admin` | Username seeded on first startup |
 | `AIOPS_INITIAL_ADMIN_PASSWORD` | `changeme` | Password seeded on first startup — **change in production** |
 | `GROQ_API_KEY` | — | Groq API key |
@@ -304,6 +309,17 @@ the API exports custom metrics:
 A pre-provisioned Grafana dashboard is included at:
 
 - `monitoring/grafana/dashboards/aegisops-observability.json`
+
+---
+
+## Distributed Tracing
+
+OpenTelemetry tracing now covers FastAPI request handling and incident workflow execution,
+with spans exported over OTLP to Jaeger.
+
+- Jaeger UI: http://localhost:16686
+- API and worker containers export traces to `http://jaeger:4318/v1/traces` in Compose
+- Workflow logs include `trace_id` so LangSmith runs and service logs can be correlated
 
 ---
 

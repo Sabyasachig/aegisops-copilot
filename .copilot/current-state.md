@@ -21,7 +21,10 @@ Last updated: 2026-08-31
 
 ## Active Work
 
-- none
+- Issue #9 OpenTelemetry distributed tracing
+- branch: `feat/issue-9-opentelemetry-distributed-tracing`
+- status: implemented locally, pending PR
+- validation: `23 passed` across `test_tracing`, `test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`
 
 ## Open Issues Snapshot
 
@@ -41,7 +44,7 @@ Last updated: 2026-08-31
 
 ## Next Suggested Issue
 
-- #9 OpenTelemetry distributed tracing
+- #10 circuit breaker for LLM providers
 
 ## Session Resume Rule
 

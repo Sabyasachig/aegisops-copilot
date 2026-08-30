@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     # SSE stream tuning
     sse_keepalive_seconds: int = 15
     sse_stream_poll_seconds: int = 1
+    # OpenTelemetry tracing
+    tracing_enabled: bool = False
+    otel_service_name: str = "aegisops-api"
+    otel_exporter_otlp_endpoint: str = "http://localhost:4318/v1/traces"
+    otel_excluded_urls: str = "/api/health,/metrics"
 
 
 @lru_cache(maxsize=1)

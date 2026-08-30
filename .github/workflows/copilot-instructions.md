@@ -23,6 +23,7 @@ Do not ask for a project overview if these files are available.
 - SSE incident progress streaming (Issue #6) is merged to `main` via PR #31.
 - Structured logging (Issue #7) is merged to `main` via PR #30.
 - Prometheus + Grafana observability (Issue #8) is merged to `main` via PR #32.
+- OpenTelemetry distributed tracing (Issue #9) is implemented on feature branch and pending PR.
 - Issue #7 is closed.
 - Issue #6 is closed.
 - Issue #8 is closed.
@@ -104,5 +105,5 @@ Result: `21 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Start Issue #9 (OpenTelemetry distributed tracing).
-2. Create branch `feat/issue-9-opentelemetry-distributed-tracing` from latest `main`.
+1. Open PR for Issue #9 using branch `feat/issue-9-opentelemetry-distributed-tracing`.
+2. Include `Closes #9` and test evidence (`23 passed, 1 warning`) in PR body.
