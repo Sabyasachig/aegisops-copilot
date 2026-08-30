@@ -24,10 +24,15 @@ latest known state without rediscovery.
 
 ### Current active implementation
 
-- none
+- Issue #10: Circuit Breaker for LLM Providers
+- Active branch: `feat/issue-10-circuit-breaker-llm-providers`
+- Status: implemented, PR open
+- PR: `#34` https://github.com/Sabyasachig/aegisops-copilot/pull/34
+- Validation: `37 passed, 1 warning` on targeted backend suite
 
 ### Recently completed
 
+- Issue #10: merged PR `#34` pending review
 - Issue #9: merged PR `#33` and issue closed
 - Validation: `23 passed, 1 warning` on targeted tests (`test_tracing`, `test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`)
 - Issue #8: merged PR `#32` and issue closed

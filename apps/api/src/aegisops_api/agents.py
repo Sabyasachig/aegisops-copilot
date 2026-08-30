@@ -11,7 +11,7 @@ from langgraph.graph import END, START, StateGraph
 from langsmith import traceable
 from opentelemetry import trace
 
-from .llm import get_chat_model
+from .llm import call_with_fallback
 from .logging_config import bind_log_context, get_logger
 from .metrics import add_llm_tokens
 from .models import Incident, LLMProvider
@@ -72,11 +72,24 @@ def _generate_role_output(
     role: str,
     system_prompt: str,
     state: IncidentOpsState,
-    model,
     provider: str,
+    model_name: str | None,
 ) -> str:
     started = perf_counter()
     logger.info("llm_call_started", node=role)
+    messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(
+            content=(
+                f"Incident ID: {state['incident_id']}\n"
+                f"Title: {state['title']}\n"
+                f"Service: {state['service']}\n"
+                f"Severity: {state['severity']}\n"
+                f"Owner: {state['owner']}\n"
+                f"Summary: {state['summary']}"
+            )
+        ),
+    ]
     with tracer.start_as_current_span(
         "llm.call",
         attributes={
@@ -85,45 +98,29 @@ def _generate_role_output(
             "incident.id": state["incident_id"],
         },
     ):
-        response = model.invoke(
-            [
-                SystemMessage(content=system_prompt),
-                HumanMessage(
-                    content=(
-                        f"Incident ID: {state['incident_id']}\n"
-                        f"Title: {state['title']}\n"
-                        f"Service: {state['service']}\n"
-                        f"Severity: {state['severity']}\n"
-                        f"Owner: {state['owner']}\n"
-                        f"Summary: {state['summary']}"
-                    )
-                ),
-            ]
-        )
+        response, used_provider = call_with_fallback(messages, provider, model_name)
 
     content = getattr(response, "content", "")
     if isinstance(content, list):
         content = " ".join(str(item) for item in content)
     token_total = _extract_total_tokens(response)
     if token_total is not None:
-        add_llm_tokens(token_total, provider=provider)
+        add_llm_tokens(token_total, provider=used_provider)
     duration_ms = round((perf_counter() - started) * 1000, 2)
-    logger.info("llm_call_completed", node=role, duration_ms=duration_ms)
+    logger.info("llm_call_completed", node=role, duration_ms=duration_ms, used_provider=used_provider)
     return str(content).strip() or f"{role} produced no textual response."
 
 
 @lru_cache(maxsize=8)
 def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None = None):
-    model = get_chat_model(provider=provider, model_name=model_name)
-
     def assess(state: IncidentOpsState) -> dict[str, str]:
         logger.info("node_started", node="assess")
         runbook_text = _generate_role_output(
             "assess",
             "You are the triage agent. Produce a concise risk summary, owner guess, and immediate action.",
             state,
-            model,
             provider,
+            model_name,
         )
         result = {
             "runbook": runbook_text,
@@ -138,8 +135,8 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
             "evidence",
             "You are the evidence agent. Summarize likely observability signals, deploy clues, and missing data.",
             state,
-            model,
             provider,
+            model_name,
         )
         result = {
             "evidence": evidence_text,
@@ -154,8 +151,8 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
             "response",
             "You are the mitigation agent. Draft the safest response plan and explicitly state what requires approval.",
             state,
-            model,
             provider,
+            model_name,
         )
         result = {
             "hypothesis": response_text,
@@ -218,9 +215,6 @@ def run_incident_workflow(
             bind_log_context(trace_id=trace_id)
         logger.info("workflow_started", provider=provider, model_name=model_name, trace_id=trace_id)
 
-        # Rebuild with event hooks for this invocation.
-        model = get_chat_model(provider=provider, model_name=model_name)
-
         def assess(state: IncidentOpsState) -> dict[str, str]:
             logger.info("node_started", node="assess")
             emit("node_started", node="assess", run_id=graph_run_id)
@@ -229,8 +223,8 @@ def run_incident_workflow(
                     "assess",
                     "You are the triage agent. Produce a concise risk summary, owner guess, and immediate action.",
                     state,
-                    model,
                     provider,
+                    model_name,
                 )
             result = {
                 "runbook": runbook_text,
@@ -248,8 +242,8 @@ def run_incident_workflow(
                     "evidence",
                     "You are the evidence agent. Summarize likely observability signals, deploy clues, and missing data.",
                     state,
-                    model,
                     provider,
+                    model_name,
                 )
             result = {
                 "evidence": evidence_text,
@@ -267,8 +261,8 @@ def run_incident_workflow(
                     "response",
                     "You are the mitigation agent. Draft the safest response plan and explicitly state what requires approval.",
                     state,
-                    model,
                     provider,
+                    model_name,
                 )
             result = {
                 "hypothesis": response_text,
