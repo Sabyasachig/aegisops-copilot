@@ -58,3 +58,8 @@ def test_get_incident_all_seed_ids_exist(authed_client: TestClient) -> None:
     for inc_id in SEED_IDS:
         resp = authed_client.get(f"/api/incidents/{inc_id}")
         assert resp.status_code == 200, f"Seed incident {inc_id} not found"
+
+
+def test_stream_unknown_incident_returns_404(authed_client: TestClient) -> None:
+    resp = authed_client.get("/api/incidents/INC-DOES-NOT-EXIST/stream")
+    assert resp.status_code == 404

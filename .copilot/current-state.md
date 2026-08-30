@@ -19,14 +19,16 @@ Last updated: 2026-08-31
 
 ## Active Work
 
-- Issue #7 closure follow-up
-- merged PR: `#30`
-- note: issue is still open on GitHub and should be closed to align tracker with merged code
+- Issue #6 SSE implementation
+- branch: `feat/issue-6-sse-realtime-progress`
+- focus: add SSE endpoint and stream node_started, node_completed, workflow_done events
+- status: implemented, PR open
+- PR: `#31` https://github.com/Sabyasachig/aegisops-copilot/pull/31
+- validation: `23 passed` across `test_events`, `test_incidents`, `test_execute`, `test_logging`
 
 ## Open Issues Snapshot
 
 - #6 Server-Sent Events (SSE) for real-time progress
-- #7 Structured Logging with structlog
 - #8 Prometheus metrics + Grafana dashboard
 - #9 OpenTelemetry distributed tracing
 - #10 circuit breaker for LLM providers
@@ -44,7 +46,7 @@ Last updated: 2026-08-31
 
 ## Next Suggested Issue
 
-- #6 (SSE streaming) after Issue #7 is closed
+- #8 (Prometheus + Grafana) after Issue #6 is merged
 
 ## Session Resume Rule
 

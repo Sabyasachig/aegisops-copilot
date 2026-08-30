@@ -169,6 +169,7 @@ make redis-cli    # Open interactive redis-cli
 | `GET` | `/api/incidents` | 🔒 | List all incidents (Redis-cached, 60s TTL) |
 | `GET` | `/api/incidents/{id}` | 🔒 | Get a single incident |
 | `POST` | `/api/incidents/{id}/execute` | 🔒 | Trigger LangGraph agent workflow |
+| `GET` | `/api/incidents/{id}/stream` | 🔒 | Stream real-time workflow events over SSE |
 | `GET` | `/api/runs/{incident_id}` | 🔒 | List all agent runs for an incident |
 | `GET` | `/api/tasks/{task_id}` | 🔒 | Poll async task status |
 | `GET` | `/api/providers` | 🔒 | List available LLM providers |
@@ -263,6 +264,8 @@ When `AIOPS_WEBHOOK_SECRET` is **not** set, signature verification is skipped (u
 | `AIOPS_JWT_REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token TTL in days |
 | `AIOPS_LOG_FORMAT` | `auto` | Logging renderer: `auto`, `json`, or `console` |
 | `AIOPS_LOG_LEVEL` | `INFO` | Root logging level |
+| `AIOPS_SSE_KEEPALIVE_SECONDS` | `15` | SSE keepalive comment interval in seconds |
+| `AIOPS_SSE_STREAM_POLL_SECONDS` | `1` | Redis pub/sub poll timeout for SSE stream loop |
 | `AIOPS_INITIAL_ADMIN_USERNAME` | `admin` | Username seeded on first startup |
 | `AIOPS_INITIAL_ADMIN_PASSWORD` | `changeme` | Password seeded on first startup — **change in production** |
 | `GROQ_API_KEY` | — | Groq API key |
@@ -280,6 +283,25 @@ The API and worker now emit structured logs using `structlog`.
 - `AIOPS_LOG_FORMAT=auto` renders JSON in production and console logs in development.
 - Context fields are attached where available: `request_id`, `incident_id`, `run_id`, `user_id`.
 - Workflow observability events include node transitions and LLM call durations.
+
+---
+
+## Real-Time SSE Progress Stream
+
+Use Server-Sent Events to stream workflow progress for a single incident:
+
+```bash
+curl -N http://localhost:4001/api/incidents/INC-2048/stream \
+  -H "Authorization: Bearer <access_token>"
+```
+
+Event types emitted include:
+
+- `workflow_queued`
+- `workflow_started`
+- `node_started`
+- `node_completed`
+- `workflow_done`
 
 ---
 

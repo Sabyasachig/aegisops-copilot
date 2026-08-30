@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 
+from .events import publish_incident_event
 from .logging_config import bind_log_context, clear_log_context, get_logger
 from .worker import celery_app
 
@@ -68,17 +69,22 @@ async def _execute_async(
     clear_log_context()
     bind_log_context(incident_id=incident_id, run_id=run_id, user_id=user_id)
     logger.info("incident_execution_started", provider=provider, model_name=model_name)
+    publish_incident_event(incident_id, "workflow_started", run_id=run_id)
 
     async with AsyncSessionLocal() as db:
         incident = await get_incident(db, incident_id)
         if incident is None:
             raise ValueError(f"Incident {incident_id!r} not found")
 
+        def _emit_workflow_event(event: str, payload: dict[str, str]) -> None:
+            publish_incident_event(incident_id, event, run_id=run_id, **payload)
+
         result = run_incident_workflow(
             incident,
             provider=provider,
             model_name=model_name,
             user_id=user_id,
+            event_emitter=_emit_workflow_event,
         )  # type: ignore[arg-type]
 
         await update_incident(
@@ -94,6 +100,13 @@ async def _execute_async(
     await cache_delete("incidents:all", f"incident:{incident_id}")
 
     logger.info("incident_execution_completed", graph_run_id=result["graph_run_id"])
+    publish_incident_event(
+        incident_id,
+        "workflow_done",
+        run_id=run_id,
+        graph_run_id=result["graph_run_id"],
+        status=result["status"],
+    )
     payload = {
         "incident_id": incident_id,
         "run_id": run_id,
