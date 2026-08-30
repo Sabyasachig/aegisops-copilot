@@ -18,18 +18,14 @@ Last updated: 2026-08-31
 - Issue #7: structured logging with structlog (merged to main via PR #30)
 - Issue #6: SSE real-time agent progress (merged to main via PR #31)
 - Issue #8: Prometheus + Grafana observability (merged to main via PR #32)
+- Issue #9: OpenTelemetry distributed tracing (merged to main via PR #33)
 
 ## Active Work
 
-- Issue #9 OpenTelemetry distributed tracing
-- branch: `feat/issue-9-opentelemetry-distributed-tracing`
-- status: implemented locally, pending PR
-- PR: `#33` https://github.com/Sabyasachig/aegisops-copilot/pull/33
-- validation: `23 passed` across `test_tracing`, `test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`
+- none
 
 ## Open Issues Snapshot
 
-- #9 OpenTelemetry distributed tracing
 - #10 circuit breaker for LLM providers
 - #11 human-in-the-loop approval gate
 - #12 tool integrations (K8s, Datadog, Slack, Jira)

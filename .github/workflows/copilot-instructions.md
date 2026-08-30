@@ -23,10 +23,11 @@ Do not ask for a project overview if these files are available.
 - SSE incident progress streaming (Issue #6) is merged to `main` via PR #31.
 - Structured logging (Issue #7) is merged to `main` via PR #30.
 - Prometheus + Grafana observability (Issue #8) is merged to `main` via PR #32.
-- OpenTelemetry distributed tracing (Issue #9) is implemented and in PR #33.
+- OpenTelemetry distributed tracing (Issue #9) is merged to `main` via PR #33.
 - Issue #7 is closed.
 - Issue #6 is closed.
 - Issue #8 is closed.
+- Issue #9 is closed.
 
 ## Files changed for Issue #7
 
@@ -105,5 +106,5 @@ Result: `21 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Review and merge PR #33: https://github.com/Sabyasachig/aegisops-copilot/pull/33
-2. After merge, verify Issue #9 auto-closes and update continuity files to merged state.
+1. Start Issue #10 (Circuit Breaker for LLM Providers).
+2. Create branch `feat/issue-10-circuit-breaker-llm-providers` from latest `main`.
