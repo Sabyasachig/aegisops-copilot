@@ -22,7 +22,11 @@ Last updated: 2026-08-31
 
 ## Active Work
 
-- none
+- Issue #10 Circuit breaker for LLM providers
+- branch: `feat/issue-10-circuit-breaker-llm-providers`
+- status: implemented, PR open
+- PR: `#34` https://github.com/Sabyasachig/aegisops-copilot/pull/34
+- validation: `37 passed, 1 warning` across `test_circuit_breaker`, `test_health`, `test_execute`, `test_events`, `test_logging`, `test_tracing`, `test_metrics`
 
 ## Open Issues Snapshot
 
@@ -41,7 +45,7 @@ Last updated: 2026-08-31
 
 ## Next Suggested Issue
 
-- #10 circuit breaker for LLM providers
+- #11 human-in-the-loop approval gate
 
 ## Session Resume Rule
 

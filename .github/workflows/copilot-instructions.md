@@ -24,10 +24,21 @@ Do not ask for a project overview if these files are available.
 - Structured logging (Issue #7) is merged to `main` via PR #30.
 - Prometheus + Grafana observability (Issue #8) is merged to `main` via PR #32.
 - OpenTelemetry distributed tracing (Issue #9) is merged to `main` via PR #33.
+- Circuit breaker for LLM providers (Issue #10) is implemented and in PR #34.
 - Issue #7 is closed.
 - Issue #6 is closed.
 - Issue #8 is closed.
 - Issue #9 is closed.
+
+## Files changed for Issue #10
+
+- `apps/api/src/aegisops_api/circuit_breaker.py` (new)
+- `apps/api/src/aegisops_api/llm.py`
+- `apps/api/src/aegisops_api/agents.py`
+- `apps/api/src/aegisops_api/settings.py`
+- `apps/api/src/aegisops_api/routers/health.py`
+- `apps/api/pyproject.toml`
+- `apps/api/tests/test_circuit_breaker.py` (new)
 
 ## Files changed for Issue #7
 
@@ -106,5 +117,5 @@ Result: `21 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Start Issue #10 (Circuit Breaker for LLM Providers).
-2. Create branch `feat/issue-10-circuit-breaker-llm-providers` from latest `main`.
+1. Review and merge PR #34: https://github.com/Sabyasachig/aegisops-copilot/pull/34
+2. After merge, verify Issue #10 auto-closes and start Issue #11 (Human-in-the-Loop Approval Gate).
