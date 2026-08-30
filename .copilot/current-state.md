@@ -22,7 +22,9 @@ Last updated: 2026-08-31
 
 - Issue #8 Prometheus + Grafana observability
 - branch: `feat/issue-8-prometheus-grafana-observability`
-- status: implemented locally, pending tests and PR creation
+- status: implemented, PR open
+- PR: `#32` https://github.com/Sabyasachig/aegisops-copilot/pull/32
+- validation: `21 passed` across `test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`
 
 ## Open Issues Snapshot
 
