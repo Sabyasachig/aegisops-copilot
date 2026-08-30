@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,8 +13,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="AIOPS_", env_file=".env", extra="ignore")
 
     app_name: str = "AegisOps Copilot API"
+    environment: str = "development"
     api_host: str = "0.0.0.0"
     api_port: int = 4001
+    log_format: Literal["auto", "console", "json"] = "auto"
+    log_level: str = "INFO"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
     llm_provider: LLMProvider = "groq"
     llm_model: str = "llama-3.1-8b-instant"
