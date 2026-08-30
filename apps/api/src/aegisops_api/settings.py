@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     llm_circuit_failure_threshold: int = 3
     llm_circuit_recovery_seconds: int = 30
     llm_circuit_retry_attempts: int = 2
+    # Human-in-the-loop approval gate
+    approval_timeout_seconds: int = 300
     llm_fallback_chain: list[str] = Field(
         default_factory=lambda: ["groq", "openai", "anthropic"]
     )

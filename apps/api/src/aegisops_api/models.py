@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 SeverityLevel = Literal["critical", "high", "medium", "low", "info"]
 IncidentStatus = Literal["triage", "investigating", "mitigating", "resolved"]
-RunStatus = Literal["queued", "running", "done", "blocked"]
+RunStatus = Literal["queued", "running", "done", "blocked", "needs_human", "rejected"]
 LLMProvider = Literal["groq", "openai", "anthropic"]
 UserRole = Literal["viewer", "operator", "admin"]
 
@@ -47,6 +47,14 @@ class ExecuteIncidentResponse(BaseModel):
     summary: str
     next_action: str
     run_id: str
+
+
+class ApproveRunRequest(BaseModel):
+    """Request body for approving a paused run (no required fields)."""
+
+
+class RejectRunRequest(BaseModel):
+    reason: str = ""
 
 
 class ProviderInfo(BaseModel):
