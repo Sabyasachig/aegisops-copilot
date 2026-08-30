@@ -25,6 +25,8 @@ os.environ.setdefault("AIOPS_WEBHOOK_SECRET", "test-webhook-secret-aegisops-hmac
 os.environ.setdefault("AIOPS_RATE_LIMIT_STORAGE_URI", "memory://")
 os.environ.setdefault("AIOPS_RATE_LIMIT_EXECUTE_IP", "1000/minute")
 os.environ.setdefault("AIOPS_RATE_LIMIT_EXECUTE_USER", "2000/minute")
+os.environ.setdefault("AIOPS_SSE_KEEPALIVE_SECONDS", "1")
+os.environ.setdefault("AIOPS_SSE_STREAM_POLL_SECONDS", "1")
 # Use NullPool so asyncpg doesn't bind to the wrong event loop under anyio
 os.environ["AIOPS_TESTING"] = "true"
 

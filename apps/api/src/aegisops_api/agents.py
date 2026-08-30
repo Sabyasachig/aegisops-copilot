@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import lru_cache
 from time import perf_counter
 from typing import NotRequired, TypedDict
@@ -146,13 +147,100 @@ def run_incident_workflow(
     provider: LLMProvider = "groq",
     model_name: str | None = None,
     user_id: str | None = None,
+    event_emitter: Callable[[str, dict[str, str]], None] | None = None,
 ) -> IncidentOpsResult:
+    def emit(event: str, **payload: str) -> None:
+        if event_emitter is not None:
+            event_emitter(event, payload)
+
     bind_log_context(incident_id=incident.id, user_id=user_id)
     logger.info("workflow_started", provider=provider, model_name=model_name)
-    graph = build_incident_graph(provider=provider, model_name=model_name)
+
     graph_run_id = f"graph_{uuid4().hex}"
     bind_log_context(run_id=graph_run_id)
-    result = graph.invoke(
+
+    # Rebuild with event hooks for this invocation.
+    model = get_chat_model(provider=provider, model_name=model_name)
+
+    def assess(state: IncidentOpsState) -> dict[str, str]:
+        logger.info("node_started", node="assess")
+        emit("node_started", node="assess", run_id=graph_run_id)
+        runbook_text = _generate_role_output(
+            "assess",
+            "You are the triage agent. Produce a concise risk summary, owner guess, and immediate action.",
+            state,
+            model,
+        )
+        result = {
+            "runbook": runbook_text,
+            "next_action": f"Pull telemetry for {state['service']} and compare it with the latest deploy history.",
+        }
+        logger.info("node_completed", node="assess")
+        emit("node_completed", node="assess", run_id=graph_run_id)
+        return result
+
+    def gather_evidence(state: IncidentOpsState) -> dict[str, str]:
+        logger.info("node_started", node="evidence")
+        emit("node_started", node="evidence", run_id=graph_run_id)
+        evidence_text = _generate_role_output(
+            "evidence",
+            "You are the evidence agent. Summarize likely observability signals, deploy clues, and missing data.",
+            state,
+            model,
+        )
+        result = {
+            "evidence": evidence_text,
+            "next_action": f"Correlate incident {state['incident_id']} against logs, traces, and deployment metadata.",
+        }
+        logger.info("node_completed", node="evidence")
+        emit("node_completed", node="evidence", run_id=graph_run_id)
+        return result
+
+    def draft_response(state: IncidentOpsState) -> dict[str, str]:
+        logger.info("node_started", node="response")
+        emit("node_started", node="response", run_id=graph_run_id)
+        response_text = _generate_role_output(
+            "response",
+            "You are the mitigation agent. Draft the safest response plan and explicitly state what requires approval.",
+            state,
+            model,
+        )
+        result = {
+            "hypothesis": response_text,
+            "response_draft": (
+                f"Impact: {state['summary']}\n"
+                f"Evidence: {state.get('evidence', '')}\n"
+                f"Runbook: {state.get('runbook', '')}\n"
+                f"Mitigation: {response_text}"
+            ),
+            "next_action": "Present the mitigation draft to the human approver before any irreversible action.",
+        }
+        logger.info("node_completed", node="response")
+        emit("node_completed", node="response", run_id=graph_run_id)
+        return result
+
+    def package_outcome(state: IncidentOpsState) -> dict[str, str]:
+        logger.info("node_started", node="package")
+        emit("node_started", node="package", run_id=graph_run_id)
+        result = {
+            "next_action": "Await human approval and keep the evidence packet attached to the incident record."
+        }
+        logger.info("node_completed", node="package")
+        emit("node_completed", node="package", run_id=graph_run_id)
+        return result
+
+    graph = StateGraph(IncidentOpsState)
+    graph.add_node("assess", assess)
+    graph.add_node("evidence", gather_evidence)
+    graph.add_node("response", draft_response)
+    graph.add_node("package", package_outcome)
+    graph.add_edge(START, "assess")
+    graph.add_edge("assess", "evidence")
+    graph.add_edge("evidence", "response")
+    graph.add_edge("response", "package")
+    graph.add_edge("package", END)
+    compiled_graph = graph.compile()
+    result = compiled_graph.invoke(
         {
             "incident_id": incident.id,
             "title": incident.title,
@@ -174,5 +262,6 @@ def run_incident_workflow(
         "summary": result.get("response_draft") or result.get("summary", ""),
         "next_action": result.get("next_action", "Await human approval"),
     }
+    emit("workflow_done", run_id=graph_run_id, status="done")
     logger.info("workflow_completed", graph_run_id=graph_run_id)
     return payload

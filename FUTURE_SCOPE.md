@@ -17,12 +17,18 @@ latest known state without rediscovery.
 ### PR status for Issue #7
 
 - Merged PR: `#30` (`feat/issue-7-structured-logging-observability` -> `main`)
-- Follow-up: GitHub Issue #7 remains open and should be closed to sync tracker state.
+- GitHub Issue #7 status: closed.
+
+### Current active implementation
+
+- Issue #6: Server-Sent Events (SSE) for real-time agent progress
+- Active branch: `feat/issue-6-sse-realtime-progress`
+- Status: implemented locally, pending PR
+- Validation: `23 passed` on targeted tests (`test_events`, `test_incidents`, `test_execute`, `test_logging`)
 
 ### Open issues currently visible on GitHub
 
 - #6 Server-Sent Events (SSE) for real-time agent progress
-- #7 Structured Logging with structlog (still open on GitHub, but implementation is already merged)
 - #8 Prometheus Metrics + Grafana Dashboard
 - #9 OpenTelemetry Distributed Tracing
 - #10 Circuit Breaker for LLM Providers

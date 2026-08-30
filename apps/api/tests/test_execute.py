@@ -68,6 +68,20 @@ def test_execute_unknown_incident_returns_404(authed_client: TestClient) -> None
     assert resp.status_code == 404
 
 
+def test_execute_publishes_queued_event(authed_client: TestClient) -> None:
+    with patch(
+        "aegisops_api.routers.execute.execute_incident_task.delay",
+        side_effect=_mock_delay,
+    ), patch("aegisops_api.routers.execute.publish_incident_event") as publish_mock:
+        resp = authed_client.post("/api/incidents/INC-2048/execute")
+
+    assert resp.status_code == 202
+    publish_mock.assert_called_once()
+    args, _ = publish_mock.call_args
+    assert args[0] == "INC-2048"
+    assert args[1] == "workflow_queued"
+
+
 def test_task_status_pending(authed_client: TestClient) -> None:
     """A task_id that was never enqueued reports PENDING."""
     resp = authed_client.get(f"/api/tasks/{_FAKE_TASK_ID}")

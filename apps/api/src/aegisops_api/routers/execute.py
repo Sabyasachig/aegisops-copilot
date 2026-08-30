@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..auth import require_operator
 from ..db.engine import get_db
 from ..db.repository import create_agent_run, get_incident
+from ..events import publish_incident_event
 from ..limiter import get_user_identifier, limiter
 from ..logging_config import bind_log_context, get_logger
 from ..models import EnqueueResponse
@@ -71,6 +72,13 @@ async def execute_incident(
         user_id=current_user,
         provider=settings.llm_provider,
         model_name=settings.llm_model,
+    )
+
+    publish_incident_event(
+        incident.id,
+        "workflow_queued",
+        run_id=queued_run.id,
+        task_id=task.id,
     )
 
     logger.info(

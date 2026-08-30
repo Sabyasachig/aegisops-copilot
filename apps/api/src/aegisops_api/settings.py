@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     rate_limit_storage_uri: str = "redis://localhost:6379/3"
     rate_limit_execute_ip: str = "10/minute"    # per client IP on the execute endpoint
     rate_limit_execute_user: str = "20/minute"  # per authenticated user on the execute endpoint
+    # SSE stream tuning
+    sse_keepalive_seconds: int = 15
+    sse_stream_poll_seconds: int = 1
 
 
 @lru_cache(maxsize=1)
