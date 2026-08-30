@@ -12,6 +12,7 @@ from langsmith import traceable
 
 from .llm import get_chat_model
 from .logging_config import bind_log_context, get_logger
+from .metrics import add_llm_tokens
 from .models import Incident, LLMProvider
 
 logger = get_logger(__name__)
@@ -38,7 +39,38 @@ class IncidentOpsResult(TypedDict):
     next_action: str
 
 
-def _generate_role_output(role: str, system_prompt: str, state: IncidentOpsState, model) -> str:
+def _extract_total_tokens(response) -> int | None:
+    usage_metadata = getattr(response, "usage_metadata", None)
+    if isinstance(usage_metadata, dict):
+        total = usage_metadata.get("total_tokens")
+        if isinstance(total, int):
+            return total
+        input_tokens = usage_metadata.get("input_tokens")
+        output_tokens = usage_metadata.get("output_tokens")
+        if isinstance(input_tokens, int) and isinstance(output_tokens, int):
+            return input_tokens + output_tokens
+
+    response_metadata = getattr(response, "response_metadata", None)
+    if isinstance(response_metadata, dict):
+        token_usage = response_metadata.get("token_usage")
+        if isinstance(token_usage, dict):
+            total = token_usage.get("total_tokens")
+            if isinstance(total, int):
+                return total
+            prompt_tokens = token_usage.get("prompt_tokens")
+            completion_tokens = token_usage.get("completion_tokens")
+            if isinstance(prompt_tokens, int) and isinstance(completion_tokens, int):
+                return prompt_tokens + completion_tokens
+    return None
+
+
+def _generate_role_output(
+    role: str,
+    system_prompt: str,
+    state: IncidentOpsState,
+    model,
+    provider: str,
+) -> str:
     started = perf_counter()
     logger.info("llm_call_started", node=role)
     response = model.invoke(
@@ -60,6 +92,9 @@ def _generate_role_output(role: str, system_prompt: str, state: IncidentOpsState
     content = getattr(response, "content", "")
     if isinstance(content, list):
         content = " ".join(str(item) for item in content)
+    token_total = _extract_total_tokens(response)
+    if token_total is not None:
+        add_llm_tokens(token_total, provider=provider)
     duration_ms = round((perf_counter() - started) * 1000, 2)
     logger.info("llm_call_completed", node=role, duration_ms=duration_ms)
     return str(content).strip() or f"{role} produced no textual response."
@@ -76,6 +111,7 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
             "You are the triage agent. Produce a concise risk summary, owner guess, and immediate action.",
             state,
             model,
+            provider,
         )
         result = {
             "runbook": runbook_text,
@@ -91,6 +127,7 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
             "You are the evidence agent. Summarize likely observability signals, deploy clues, and missing data.",
             state,
             model,
+            provider,
         )
         result = {
             "evidence": evidence_text,
@@ -106,6 +143,7 @@ def build_incident_graph(provider: LLMProvider = "groq", model_name: str | None 
             "You are the mitigation agent. Draft the safest response plan and explicitly state what requires approval.",
             state,
             model,
+            provider,
         )
         result = {
             "hypothesis": response_text,

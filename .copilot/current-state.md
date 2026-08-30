@@ -20,7 +20,9 @@ Last updated: 2026-08-31
 
 ## Active Work
 
-- none
+- Issue #8 Prometheus + Grafana observability
+- branch: `feat/issue-8-prometheus-grafana-observability`
+- status: implemented locally, pending tests and PR creation
 
 ## Open Issues Snapshot
 

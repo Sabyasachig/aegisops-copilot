@@ -133,6 +133,11 @@ make start
 
 This starts 4 containers: **PostgreSQL 16**, **Redis 7**, **FastAPI API**, **Next.js UI**.
 
+For observability (Issue #8), the Compose stack also includes:
+
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3001 (default login: `admin` / `admin`)
+
 ### 3. Open the dashboard
 - **UI:** http://localhost:3000
 - **API docs (Swagger):** http://localhost:4001/docs
@@ -164,6 +169,7 @@ make redis-cli    # Open interactive redis-cli
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/health` | public | Health check (PostgreSQL + Redis status) |
+| `GET` | `/metrics` | public | Prometheus metrics endpoint |
 | `POST` | `/api/auth/token` | public | Login — returns access + refresh token pair |
 | `POST` | `/api/auth/refresh` | public | Exchange refresh token for new access token |
 | `GET` | `/api/incidents` | 🔒 | List all incidents (Redis-cached, 60s TTL) |
@@ -283,6 +289,21 @@ The API and worker now emit structured logs using `structlog`.
 - `AIOPS_LOG_FORMAT=auto` renders JSON in production and console logs in development.
 - Context fields are attached where available: `request_id`, `incident_id`, `run_id`, `user_id`.
 - Workflow observability events include node transitions and LLM call durations.
+
+---
+
+## Metrics and Dashboards
+
+Prometheus scrapes API metrics from `/metrics`. In addition to default HTTP metrics,
+the API exports custom metrics:
+
+- `agent_run_duration_seconds`
+- `llm_token_total`
+- `incident_mttr_seconds`
+
+A pre-provisioned Grafana dashboard is included at:
+
+- `monitoring/grafana/dashboards/aegisops-observability.json`
 
 ---
 
