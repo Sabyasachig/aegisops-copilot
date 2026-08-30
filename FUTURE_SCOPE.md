@@ -12,18 +12,17 @@ latest known state without rediscovery.
 - Issue #3 (Webhook HMAC validation): implemented
 - Issue #4 (Rate limiting): implemented
 - Issue #5 (Async task queue): implemented
-- Issue #7 (Structured logging): implemented on branch `feat/issue-7-structured-logging-observability`, pending PR creation/merge
+- Issue #7 (Structured logging): merged to `main` via PR #30
 
 ### PR status for Issue #7
 
-- Branch pushed: `origin/feat/issue-7-structured-logging-observability`
-- PR URL: `https://github.com/Sabyasachig/aegisops-copilot/pull/new/feat/issue-7-structured-logging-observability`
-- PR creation from CLI is currently blocked by GitHub authentication (`gh` returned 401 in this session).
+- Merged PR: `#30` (`feat/issue-7-structured-logging-observability` -> `main`)
+- Follow-up: GitHub Issue #7 remains open and should be closed to sync tracker state.
 
 ### Open issues currently visible on GitHub
 
 - #6 Server-Sent Events (SSE) for real-time agent progress
-- #7 Structured Logging with structlog (still open on GitHub; code is now present locally)
+- #7 Structured Logging with structlog (still open on GitHub, but implementation is already merged)
 - #8 Prometheus Metrics + Grafana Dashboard
 - #9 OpenTelemetry Distributed Tracing
 - #10 Circuit Breaker for LLM Providers
