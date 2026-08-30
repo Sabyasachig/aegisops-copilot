@@ -48,6 +48,29 @@ def execute_incident_task(
     )
 
 
+async def _wait_for_approval_decision(run_id: str, timeout_seconds: int) -> dict:
+    """Poll Redis every 2 s for an approval decision written by the API.
+
+    Returns a dict with at least ``{"action": "approve" | "reject" | "timeout"}``.
+    """
+    import json as _json
+    import time
+
+    from .cache import get_redis
+
+    redis = get_redis()
+    key = f"approval_decision:{run_id}"
+    deadline = time.monotonic() + timeout_seconds
+
+    while time.monotonic() < deadline:
+        raw = await redis.get(key)
+        if raw:
+            return _json.loads(raw)
+        await asyncio.sleep(2)
+
+    return {"action": "timeout"}
+
+
 async def _execute_async(
     incident_id: str,
     run_id: str,
@@ -56,15 +79,18 @@ async def _execute_async(
     model_name: str,
 ) -> dict:
     """Async implementation — called from the Celery task via asyncio.run()."""
-    # Import inside the function to avoid import-time side-effects in the worker
+    import json as _json
+
     from .agents import run_incident_workflow
-    from .cache import cache_delete
+    from .cache import cache_delete, get_redis
     from .db.engine import AsyncSessionLocal
     from .db.repository import (
         complete_agent_run,
         get_incident,
+        update_agent_run_status,
         update_incident,
     )
+    from .settings import get_settings
 
     clear_log_context()
     bind_log_context(incident_id=incident_id, run_id=run_id, user_id=user_id)
@@ -87,6 +113,54 @@ async def _execute_async(
             event_emitter=_emit_workflow_event,
         )  # type: ignore[arg-type]
 
+        # ── Human-in-the-loop approval gate ──────────────────────────────────
+        if result["status"] == "needs_human":
+            thread_id: str = result["thread_id"]  # type: ignore[typeddict-item]
+            settings = get_settings()
+            redis = get_redis()
+
+            await update_agent_run_status(db, run_id, "needs_human")
+            await redis.setex(
+                f"approval_pending:{run_id}",
+                settings.approval_timeout_seconds + 300,
+                _json.dumps({"thread_id": thread_id, "incident_id": incident_id}),
+            )
+            logger.info("workflow_awaiting_approval", run_id=run_id, thread_id=thread_id)
+            publish_incident_event(incident_id, "approval_required", run_id=run_id)
+
+            decision = await _wait_for_approval_decision(run_id, settings.approval_timeout_seconds)
+
+            if decision["action"] == "approve":
+                logger.info("workflow_approved", run_id=run_id)
+                publish_incident_event(incident_id, "workflow_approved", run_id=run_id)
+                result = run_incident_workflow(
+                    incident,
+                    provider=provider,
+                    model_name=model_name,
+                    user_id=user_id,
+                    event_emitter=_emit_workflow_event,
+                    resume_approved=True,
+                    resume_thread_id=thread_id,
+                )
+            else:
+                reason = decision.get("reason") or (
+                    "No response within timeout."
+                    if decision["action"] == "timeout"
+                    else "Rejected by reviewer."
+                )
+                logger.info("workflow_not_approved", run_id=run_id,
+                            action=decision["action"], reason=reason)
+                publish_incident_event(incident_id, "workflow_rejected", run_id=run_id)
+                result = {
+                    "graph_run_id": result["graph_run_id"],
+                    "status": "rejected",
+                    "summary": f"Workflow rejected: {reason}",
+                    "next_action": "Escalate to senior engineer or re-run with revised parameters.",
+                }
+
+            await redis.delete(f"approval_pending:{run_id}")
+        # ── End approval gate ─────────────────────────────────────────────────
+
         await update_incident(
             db,
             incident.id,
@@ -94,7 +168,7 @@ async def _execute_async(
             summary=result["summary"],
             open_actions=[result["next_action"]],
         )
-        await complete_agent_run(db, run_id, summary=result["summary"])
+        await complete_agent_run(db, run_id, summary=result["summary"], status=result["status"])
 
     # Invalidate cache *after* the DB transaction is committed
     await cache_delete("incidents:all", f"incident:{incident_id}")

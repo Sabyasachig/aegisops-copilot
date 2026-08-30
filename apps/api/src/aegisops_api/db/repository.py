@@ -200,3 +200,28 @@ async def delete_incident(db: AsyncSession, incident_id: str) -> bool:
     await db.delete(row)
     await db.commit()
     return True
+
+
+async def get_run_by_id(db: AsyncSession, run_id: str) -> AgentRun | None:
+    """Return the AgentRun for *run_id*, or ``None`` if not found."""
+    result = await db.execute(select(AgentRunRow).where(AgentRunRow.id == run_id))
+    row = result.scalar_one_or_none()
+    return _row_to_run(row) if row else None
+
+
+async def update_agent_run_status(
+    db: AsyncSession,
+    run_id: str,
+    status: str,
+) -> AgentRun | None:
+    """Set the status of a run.  Stamps ``finished_at`` for terminal statuses."""
+    result = await db.execute(select(AgentRunRow).where(AgentRunRow.id == run_id))
+    row = result.scalar_one_or_none()
+    if row is None:
+        return None
+    row.status = status
+    if status in ("done", "rejected"):
+        row.finished_at = datetime.now(UTC)
+    await db.commit()
+    await db.refresh(row)
+    return _row_to_run(row)
