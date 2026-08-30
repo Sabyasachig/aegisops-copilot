@@ -16,6 +16,7 @@ latest known state without rediscovery.
 - Issue #7 (Structured logging): merged to `main` via PR #30
 - Issue #8 (Prometheus Metrics + Grafana Dashboard): merged to `main` via PR #32
 - Issue #9 (OpenTelemetry Distributed Tracing): merged to `main` via PR #33
+- Issue #10 (Circuit Breaker for LLM Providers): merged to `main` via PR #34
 
 ### PR status for Issue #7
 
@@ -24,15 +25,12 @@ latest known state without rediscovery.
 
 ### Current active implementation
 
-- Issue #10: Circuit Breaker for LLM Providers
-- Active branch: `feat/issue-10-circuit-breaker-llm-providers`
-- Status: implemented, PR open
-- PR: `#34` https://github.com/Sabyasachig/aegisops-copilot/pull/34
-- Validation: `37 passed, 1 warning` on targeted backend suite
+- none
 
 ### Recently completed
 
-- Issue #10: merged PR `#34` pending review
+- Issue #10: merged PR `#34` and issue closed
+- Validation: `37 passed, 1 warning` on targeted tests
 - Issue #9: merged PR `#33` and issue closed
 - Validation: `23 passed, 1 warning` on targeted tests (`test_tracing`, `test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`)
 - Issue #8: merged PR `#32` and issue closed
@@ -42,7 +40,6 @@ latest known state without rediscovery.
 
 ### Open issues currently visible on GitHub
 
-- #10 Circuit Breaker for LLM Providers
 - #11 Human-in-the-Loop Approval Gate
 - #12 Tool Use — Real Integrations
 - #13 Agent Memory & Context Store (pgvector)

@@ -19,18 +19,14 @@ Last updated: 2026-08-31
 - Issue #6: SSE real-time agent progress (merged to main via PR #31)
 - Issue #8: Prometheus + Grafana observability (merged to main via PR #32)
 - Issue #9: OpenTelemetry distributed tracing (merged to main via PR #33)
+- Issue #10: Circuit breaker for LLM providers (merged to main via PR #34)
 
 ## Active Work
 
-- Issue #10 Circuit breaker for LLM providers
-- branch: `feat/issue-10-circuit-breaker-llm-providers`
-- status: implemented, PR open
-- PR: `#34` https://github.com/Sabyasachig/aegisops-copilot/pull/34
-- validation: `37 passed, 1 warning` across `test_circuit_breaker`, `test_health`, `test_execute`, `test_events`, `test_logging`, `test_tracing`, `test_metrics`
+- none
 
 ## Open Issues Snapshot
 
-- #10 circuit breaker for LLM providers
 - #11 human-in-the-loop approval gate
 - #12 tool integrations (K8s, Datadog, Slack, Jira)
 - #13 agent memory + context store (pgvector)

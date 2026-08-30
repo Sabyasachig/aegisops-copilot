@@ -24,7 +24,8 @@ Do not ask for a project overview if these files are available.
 - Structured logging (Issue #7) is merged to `main` via PR #30.
 - Prometheus + Grafana observability (Issue #8) is merged to `main` via PR #32.
 - OpenTelemetry distributed tracing (Issue #9) is merged to `main` via PR #33.
-- Circuit breaker for LLM providers (Issue #10) is implemented and in PR #34.
+- Circuit breaker for LLM providers (Issue #10) is merged to `main` via PR #34.
+- Issue #10 is closed.
 - Issue #7 is closed.
 - Issue #6 is closed.
 - Issue #8 is closed.
@@ -117,5 +118,5 @@ Result: `21 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Review and merge PR #34: https://github.com/Sabyasachig/aegisops-copilot/pull/34
-2. After merge, verify Issue #10 auto-closes and start Issue #11 (Human-in-the-Loop Approval Gate).
+1. Start Issue #11 (Human-in-the-Loop Approval Gate).
+2. Create branch `feat/issue-11-human-in-the-loop-approval` from latest `main`.
