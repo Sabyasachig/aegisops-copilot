@@ -16,19 +16,14 @@ Last updated: 2026-08-31
 - Issue #4: rate limiting
 - Issue #5: async task queue
 - Issue #7: structured logging with structlog (merged to main via PR #30)
+- Issue #6: SSE real-time agent progress (merged to main via PR #31)
 
 ## Active Work
 
-- Issue #6 SSE implementation
-- branch: `feat/issue-6-sse-realtime-progress`
-- focus: add SSE endpoint and stream node_started, node_completed, workflow_done events
-- status: implemented, PR open
-- PR: `#31` https://github.com/Sabyasachig/aegisops-copilot/pull/31
-- validation: `23 passed` across `test_events`, `test_incidents`, `test_execute`, `test_logging`
+- none
 
 ## Open Issues Snapshot
 
-- #6 Server-Sent Events (SSE) for real-time progress
 - #8 Prometheus metrics + Grafana dashboard
 - #9 OpenTelemetry distributed tracing
 - #10 circuit breaker for LLM providers

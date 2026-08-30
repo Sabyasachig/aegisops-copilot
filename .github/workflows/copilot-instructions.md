@@ -20,8 +20,10 @@ Do not ask for a project overview if these files are available.
 
 - Security/auth baseline is implemented (JWT, RBAC, webhook HMAC, rate limits).
 - Async execution path is implemented (queue + status polling).
+- SSE incident progress streaming (Issue #6) is merged to `main` via PR #31.
 - Structured logging (Issue #7) is merged to `main` via PR #30.
-- Issue #7 is still open on GitHub and should be closed to sync the tracker.
+- Issue #7 is closed.
+- Issue #6 is closed.
 
 ## Files changed for Issue #7
 
@@ -90,6 +92,5 @@ Result: `4 passed`.
 
 ## Next recommended actions
 
-1. Close Issue #7 on GitHub (implementation already merged in PR #30).
-2. Start implementation of Issue #6 (SSE streaming).
-3. Create branch `feat/issue-6-sse-realtime-progress` from latest `main`.
+1. Start implementation of Issue #8 (Prometheus metrics plus Grafana dashboard).
+2. Create branch `feat/issue-8-prometheus-grafana-observability` from latest `main`.

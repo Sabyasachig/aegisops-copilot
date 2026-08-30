@@ -12,6 +12,7 @@ latest known state without rediscovery.
 - Issue #3 (Webhook HMAC validation): implemented
 - Issue #4 (Rate limiting): implemented
 - Issue #5 (Async task queue): implemented
+- Issue #6 (SSE real-time agent progress): merged to `main` via PR #31
 - Issue #7 (Structured logging): merged to `main` via PR #30
 
 ### PR status for Issue #7
@@ -21,15 +22,15 @@ latest known state without rediscovery.
 
 ### Current active implementation
 
-- Issue #6: Server-Sent Events (SSE) for real-time agent progress
-- Active branch: `feat/issue-6-sse-realtime-progress`
-- Status: implemented, PR open
-- PR: `#31` https://github.com/Sabyasachig/aegisops-copilot/pull/31
+- none
+
+### Recently completed
+
+- Issue #6: merged PR `#31` and issue closed
 - Validation: `23 passed` on targeted tests (`test_events`, `test_incidents`, `test_execute`, `test_logging`)
 
 ### Open issues currently visible on GitHub
 
-- #6 Server-Sent Events (SSE) for real-time agent progress
 - #8 Prometheus Metrics + Grafana Dashboard
 - #9 OpenTelemetry Distributed Tracing
 - #10 Circuit Breaker for LLM Providers
