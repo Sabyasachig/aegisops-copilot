@@ -12,7 +12,13 @@ latest known state without rediscovery.
 - Issue #3 (Webhook HMAC validation): implemented
 - Issue #4 (Rate limiting): implemented
 - Issue #5 (Async task queue): implemented
-- Issue #7 (Structured logging): implemented locally in this workspace, pending PR/merge
+- Issue #7 (Structured logging): implemented on branch `feat/issue-7-structured-logging-observability`, pending PR creation/merge
+
+### PR status for Issue #7
+
+- Branch pushed: `origin/feat/issue-7-structured-logging-observability`
+- PR URL: `https://github.com/Sabyasachig/aegisops-copilot/pull/new/feat/issue-7-structured-logging-observability`
+- PR creation from CLI is currently blocked by GitHub authentication (`gh` returned 401 in this session).
 
 ### Open issues currently visible on GitHub
 
@@ -58,8 +64,7 @@ Result in this session: `4 passed`.
 ### Important environment note
 
 - `apps/api/pyproject.toml` requires Python `>=3.11`.
-- Current root `.venv` is Python `3.9.6`, which may fail for full dependency resolution.
-- If full test suite is needed, create/use a Python 3.11+ virtual environment.
+- Current root `.venv` is Python `3.12.2`.
 
 Each section below maps to a GitHub Issue / Pull Request.
 Label convention: `enhancement`, `security`, `infra`, `agent`, `integration`, `observability`

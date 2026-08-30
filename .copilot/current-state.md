@@ -15,11 +15,14 @@ Last updated: 2026-08-31
 - Issue #3: webhook HMAC validation
 - Issue #4: rate limiting
 - Issue #5: async task queue
-- Issue #7: structured logging with structlog (implemented locally, pending PR/merge)
+- Issue #7: structured logging with structlog (implemented, committed, branch pushed)
 
 ## Active Work
 
-- none
+- Issue #7 PR creation and merge tracking
+- branch: `feat/issue-7-structured-logging-observability`
+- PR URL: `https://github.com/Sabyasachig/aegisops-copilot/pull/new/feat/issue-7-structured-logging-observability`
+- blocker: GitHub CLI auth required (`gh` returned 401)
 
 ## Open Issues Snapshot
 

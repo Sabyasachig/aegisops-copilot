@@ -20,8 +20,10 @@ Do not ask for a project overview if these files are available.
 
 - Security/auth baseline is implemented (JWT, RBAC, webhook HMAC, rate limits).
 - Async execution path is implemented (queue + status polling).
-- Structured logging (Issue #7) has been implemented locally in this workspace.
+- Structured logging (Issue #7) is implemented and committed on branch `feat/issue-7-structured-logging-observability`.
 - Issue #7 is still open on GitHub and should be closed only after PR merge.
+- PR URL ready: `https://github.com/Sabyasachig/aegisops-copilot/pull/new/feat/issue-7-structured-logging-observability`
+- CLI PR creation is blocked in this environment until `gh auth login` is completed.
 
 ## Files changed for Issue #7
 
@@ -90,7 +92,7 @@ Result: `4 passed`.
 
 ## Next recommended actions
 
-1. Run full API tests in Python 3.11+ env and fix any integration regressions.
-2. Open PR for Issue #7 and link test proof in PR description.
-3. Close Issue #7 after merge.
+1. Authenticate GitHub CLI (`gh auth login`) or open the PR URL directly in browser and submit the PR.
+2. Ensure PR body includes `Closes #7`.
+3. Close Issue #7 after merge (automatic if linked keyword is present).
 4. Start implementation of Issue #6 (SSE streaming) next.
