@@ -22,6 +22,7 @@ Do not ask for a project overview if these files are available.
 - Async execution path is implemented (queue + status polling).
 - SSE incident progress streaming (Issue #6) is merged to `main` via PR #31.
 - Structured logging (Issue #7) is merged to `main` via PR #30.
+- Prometheus + Grafana observability (Issue #8) is implemented and in PR #32.
 - Issue #7 is closed.
 - Issue #6 is closed.
 
@@ -75,6 +76,16 @@ set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.e
 
 Result: `4 passed`.
 
+Additional verification for Issue #8 in this session:
+
+```bash
+set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.env && set +a \
+&& cd /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/apps/api \
+&& PYTHONPATH=src /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.venv/bin/python -m pytest -q tests/test_metrics.py tests/test_health.py tests/test_execute.py tests/test_events.py tests/test_logging.py
+```
+
+Result: `21 passed, 1 warning`.
+
 ## Known environment constraint
 
 - `apps/api/pyproject.toml` requires Python `>=3.11`.
@@ -92,5 +103,5 @@ Result: `4 passed`.
 
 ## Next recommended actions
 
-1. Start implementation of Issue #8 (Prometheus metrics plus Grafana dashboard).
-2. Create branch `feat/issue-8-prometheus-grafana-observability` from latest `main`.
+1. Review and merge PR #32: https://github.com/Sabyasachig/aegisops-copilot/pull/32
+2. After merge, verify Issue #8 auto-closes and update continuity files to merged state.

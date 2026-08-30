@@ -6,6 +6,7 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..metrics import observe_agent_run_duration, observe_incident_mttr
 from ..models import AgentRun, Incident
 from .orm_models import AgentRunRow, IncidentRow, UserRow
 
@@ -94,6 +95,11 @@ async def update_incident(
     if open_actions is not None:
         row.open_actions = open_actions
     row.updated_at = datetime.now(UTC)
+
+    if status == "resolved":
+        mttr_seconds = (row.updated_at - row.created_at).total_seconds()
+        observe_incident_mttr(mttr_seconds)
+
     await db.commit()
     await db.refresh(row)
     return _row_to_incident(row)
@@ -145,6 +151,7 @@ async def complete_agent_run(
     row.status = status
     row.summary = summary
     row.finished_at = datetime.now(UTC)
+    observe_agent_run_duration((row.finished_at - row.started_at).total_seconds())
     await db.commit()
     await db.refresh(row)
     return _row_to_run(row)

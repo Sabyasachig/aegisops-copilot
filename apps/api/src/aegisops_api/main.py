@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -113,6 +114,13 @@ def create_app() -> FastAPI:
     app.include_router(tasks_router, prefix="/api")
     app.include_router(providers_router, prefix="/api")
     app.include_router(webhooks_router, prefix="/api")
+
+    Instrumentator(
+        should_group_status_codes=True,
+        should_ignore_untemplated=True,
+        should_respect_env_var=False,
+        excluded_handlers=["/api/health"],
+    ).instrument(app).expose(app, include_in_schema=False)
 
     return app
 

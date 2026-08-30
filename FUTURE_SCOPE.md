@@ -22,7 +22,11 @@ latest known state without rediscovery.
 
 ### Current active implementation
 
-- none
+- Issue #8: Prometheus Metrics + Grafana Dashboard
+- Active branch: `feat/issue-8-prometheus-grafana-observability`
+- Status: implemented, PR open
+- PR: `#32` https://github.com/Sabyasachig/aegisops-copilot/pull/32
+- Validation: `21 passed, 1 warning` on targeted backend suite
 
 ### Recently completed
 
