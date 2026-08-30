@@ -9,11 +9,13 @@ from __future__ import annotations
 
 from celery import Celery
 
+from .logging_config import configure_logging
 from .settings import get_settings
 
 
 def _make_celery() -> Celery:
     settings = get_settings()
+    configure_logging(settings)
     app = Celery(
         "aegisops",
         broker=settings.celery_broker_url,

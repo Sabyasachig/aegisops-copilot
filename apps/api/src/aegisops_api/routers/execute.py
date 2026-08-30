@@ -5,11 +5,14 @@ from ..auth import require_operator
 from ..db.engine import get_db
 from ..db.repository import create_agent_run, get_incident
 from ..limiter import get_user_identifier, limiter
+from ..logging_config import bind_log_context, get_logger
 from ..models import EnqueueResponse
 from ..settings import get_settings
 from ..tasks import execute_incident_task
 
-router = APIRouter(tags=["execution"], dependencies=[Depends(require_operator)])
+logger = get_logger(__name__)
+
+router = APIRouter(tags=["execution"])
 
 
 # ---------------------------------------------------------------------------
@@ -42,8 +45,11 @@ async def execute_incident(
     request: Request,
     incident_id: str,
     response: Response,
+    current_user: str = Depends(require_operator),
     db: AsyncSession = Depends(get_db),
 ) -> EnqueueResponse:
+    bind_log_context(user_id=current_user, incident_id=incident_id)
+
     incident = await get_incident(db, incident_id)
     if incident is None:
         raise HTTPException(status_code=404, detail="Incident not found.")
@@ -61,6 +67,15 @@ async def execute_incident(
     # Dispatch to Celery — this is non-blocking
     task = execute_incident_task.delay(
         incident_id=incident.id,
+        run_id=queued_run.id,
+        user_id=current_user,
+        provider=settings.llm_provider,
+        model_name=settings.llm_model,
+    )
+
+    logger.info(
+        "incident_execution_enqueued",
+        task_id=task.id,
         run_id=queued_run.id,
         provider=settings.llm_provider,
         model_name=settings.llm_model,

@@ -1,5 +1,66 @@
 # Future Scope — AegisOps Copilot
 
+## Current State Checkpoint (2026-08-31)
+
+This section is the session handoff snapshot so future work starts from the
+latest known state without rediscovery.
+
+### Delivered in codebase
+
+- Issue #1 (JWT auth): implemented
+- Issue #2 (RBAC): implemented
+- Issue #3 (Webhook HMAC validation): implemented
+- Issue #4 (Rate limiting): implemented
+- Issue #5 (Async task queue): implemented
+- Issue #7 (Structured logging): implemented locally in this workspace, pending PR/merge
+
+### Open issues currently visible on GitHub
+
+- #6 Server-Sent Events (SSE) for real-time agent progress
+- #7 Structured Logging with structlog (still open on GitHub; code is now present locally)
+- #8 Prometheus Metrics + Grafana Dashboard
+- #9 OpenTelemetry Distributed Tracing
+- #10 Circuit Breaker for LLM Providers
+- #11 Human-in-the-Loop Approval Gate
+- #12 Tool Use — Real Integrations
+- #13 Agent Memory & Context Store (pgvector)
+- #14 RAG Runbook Knowledge Base
+- #15 Confidence Scoring & Auto-Escalation
+- #16 Audit Log
+- #17 OpsGenie & Alertmanager Webhook Handlers
+- #18 Slack Notification on Run Completion
+- #20 Kubernetes Helm Chart
+- #21 Managed Database & Cache (Cloud-Ready)
+- #22 LLM Cost Tracking per Run
+
+### Issue #7 implementation notes (local branch)
+
+- Added centralized structured logging config with `structlog`.
+- Added environment-aware renderer selection:
+	- `AIOPS_LOG_FORMAT=json|console|auto`
+	- `auto` => JSON in production, console in non-production
+- Added log context propagation (`incident_id`, `run_id`, `user_id`, `request_id`) for API and worker flows.
+- Added workflow/node timing logs for LLM and graph transitions.
+- Added tests: `apps/api/tests/test_logging.py`.
+
+### Test command used in this session
+
+Run from repo root:
+
+```bash
+set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.env && set +a \
+&& cd /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/apps/api \
+&& PYTHONPATH=src /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.venv/bin/python -m pytest -q tests/test_logging.py
+```
+
+Result in this session: `4 passed`.
+
+### Important environment note
+
+- `apps/api/pyproject.toml` requires Python `>=3.11`.
+- Current root `.venv` is Python `3.9.6`, which may fail for full dependency resolution.
+- If full test suite is needed, create/use a Python 3.11+ virtual environment.
+
 Each section below maps to a GitHub Issue / Pull Request.
 Label convention: `enhancement`, `security`, `infra`, `agent`, `integration`, `observability`
 

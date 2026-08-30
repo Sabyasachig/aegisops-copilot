@@ -8,11 +8,11 @@ Callers poll ``GET /api/tasks/{task_id}`` to check progress.
 from __future__ import annotations
 
 import asyncio
-import logging
 
+from .logging_config import bind_log_context, clear_log_context, get_logger
 from .worker import celery_app
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @celery_app.task(
@@ -27,6 +27,7 @@ def execute_incident_task(
     self,  # noqa: ANN001 – Celery bound task
     incident_id: str,
     run_id: str,
+    user_id: str | None,
     provider: str,
     model_name: str,
 ) -> dict:
@@ -37,7 +38,11 @@ def execute_incident_task(
     """
     return asyncio.run(
         _execute_async(
-            incident_id=incident_id, run_id=run_id, provider=provider, model_name=model_name
+            incident_id=incident_id,
+            run_id=run_id,
+            user_id=user_id,
+            provider=provider,
+            model_name=model_name,
         )
     )
 
@@ -45,6 +50,7 @@ def execute_incident_task(
 async def _execute_async(
     incident_id: str,
     run_id: str,
+    user_id: str | None,
     provider: str,
     model_name: str,
 ) -> dict:
@@ -59,12 +65,21 @@ async def _execute_async(
         update_incident,
     )
 
+    clear_log_context()
+    bind_log_context(incident_id=incident_id, run_id=run_id, user_id=user_id)
+    logger.info("incident_execution_started", provider=provider, model_name=model_name)
+
     async with AsyncSessionLocal() as db:
         incident = await get_incident(db, incident_id)
         if incident is None:
             raise ValueError(f"Incident {incident_id!r} not found")
 
-        result = run_incident_workflow(incident, provider=provider, model_name=model_name)  # type: ignore[arg-type]
+        result = run_incident_workflow(
+            incident,
+            provider=provider,
+            model_name=model_name,
+            user_id=user_id,
+        )  # type: ignore[arg-type]
 
         await update_incident(
             db,
@@ -78,8 +93,8 @@ async def _execute_async(
     # Invalidate cache *after* the DB transaction is committed
     await cache_delete("incidents:all", f"incident:{incident_id}")
 
-    logger.info("Completed incident workflow", extra={"incident_id": incident_id, "run_id": run_id})
-    return {
+    logger.info("incident_execution_completed", graph_run_id=result["graph_run_id"])
+    payload = {
         "incident_id": incident_id,
         "run_id": run_id,
         "status": result["status"],
@@ -87,3 +102,5 @@ async def _execute_async(
         "summary": result["summary"],
         "next_action": result["next_action"],
     }
+    clear_log_context()
+    return payload
