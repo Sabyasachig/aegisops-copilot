@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     otel_service_name: str = "aegisops-api"
     otel_exporter_otlp_endpoint: str = "http://localhost:4318/v1/traces"
     otel_excluded_urls: str = "/api/health,/metrics"
+    # Circuit breaker for LLM providers
+    llm_circuit_failure_threshold: int = 3
+    llm_circuit_recovery_seconds: int = 30
+    llm_circuit_retry_attempts: int = 2
+    llm_fallback_chain: list[str] = Field(
+        default_factory=lambda: ["groq", "openai", "anthropic"]
+    )
 
 
 @lru_cache(maxsize=1)
