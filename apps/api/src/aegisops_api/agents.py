@@ -48,6 +48,7 @@ class IncidentOpsState(TypedDict):
     runbook: NotRequired[str]
     next_action: NotRequired[str]
     similar_incidents: NotRequired[str]
+    runbook_context: NotRequired[str]
 
 
 class IncidentOpsResult(TypedDict):
@@ -217,6 +218,7 @@ def run_incident_workflow(
     resume_approved: bool | None = None,
     resume_thread_id: str | None = None,
     similar_incidents: str | None = None,
+    runbook_context: str | None = None,
 ) -> IncidentOpsResult:
     def emit(event: str, **payload: str) -> None:
         if event_emitter is not None:
@@ -266,9 +268,19 @@ def run_incident_workflow(
             logger.info("node_started", node="evidence")
             emit("node_started", node="evidence", run_id=graph_run_id)
             with tracer.start_as_current_span("incident.node.evidence"):
+                runbook_ctx = state.get("runbook_context", "")
+                evidence_system = (
+                    "You are the evidence agent. "
+                    "Summarize likely observability signals, deploy clues, and missing data."
+                )
+                if runbook_ctx:
+                    evidence_system = (
+                        f"{evidence_system}\n\n"
+                        f"Use the following runbook context to guide your analysis:\n{runbook_ctx}"
+                    )
                 evidence_text = _generate_role_output(
                     "evidence",
-                    "You are the evidence agent. Summarize likely observability signals, deploy clues, and missing data.",
+                    evidence_system,
                     state,
                     provider,
                     model_name,
@@ -404,6 +416,7 @@ def run_incident_workflow(
                         "runbook": "",
                         "next_action": "",
                         "similar_incidents": similar_incidents or "",
+                        "runbook_context": runbook_context or "",
                     },
                     config=config,
                 )
