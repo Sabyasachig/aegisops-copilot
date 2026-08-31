@@ -18,11 +18,11 @@ latest known state without rediscovery.
 - Issue #9 (OpenTelemetry Distributed Tracing): merged to `main` via PR #33
 - Issue #10 (Circuit Breaker for LLM Providers): merged to `main` via PR #34
 - Issue #11 (Human-in-the-Loop Approval Gate): merged to `main` via PR #35
-- Issue #12 (Tool Integrations — K8s, Datadog, Slack, Jira): PR #36 open — awaiting merge
+- Issue #12 (Tool Integrations — K8s, Datadog, Slack, Jira): merged to `main` via PR #36
 
 ### Current active implementation
 
-- PR #36 (Issue #12) open; merge before starting Issue #13
+- Issue #13 (Agent Memory + Context Store — pgvector) in progress
 
 ### Recently completed
 

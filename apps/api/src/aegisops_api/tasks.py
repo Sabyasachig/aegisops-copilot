@@ -105,18 +105,38 @@ async def _execute_async(
         def _emit_workflow_event(event: str, payload: dict[str, str]) -> None:
             publish_incident_event(incident_id, event, run_id=run_id, **payload)
 
+        # ── Agent memory retrieval (feature-flagged; lazy-imported) ──────────
+        similar_ctx = ""
+        settings = get_settings()
+        if settings.memory_enabled:
+            try:
+                from .memory import (  # noqa: PLC0415
+                    find_similar_incidents,
+                    format_similar_incidents_for_prompt,
+                )
+                similar = await find_similar_incidents(
+                    db,
+                    query=f"{incident.title}\n{incident.summary}",
+                    service=incident.service,
+                )
+                similar_ctx = format_similar_incidents_for_prompt(similar)
+                if similar_ctx:
+                    logger.info("similar_incidents_retrieved", count=len(similar))
+            except Exception as exc:  # never fail the workflow on memory errors
+                logger.warning("memory_retrieval_failed", error=str(exc))
+
         result = run_incident_workflow(
             incident,
             provider=provider,
             model_name=model_name,
             user_id=user_id,
             event_emitter=_emit_workflow_event,
+            similar_incidents=similar_ctx or None,
         )  # type: ignore[arg-type]
 
         # ── Human-in-the-loop approval gate ──────────────────────────────────
         if result["status"] == "needs_human":
             thread_id: str = result["thread_id"]  # type: ignore[typeddict-item]
-            settings = get_settings()
             redis = get_redis()
 
             await update_agent_run_status(db, run_id, "needs_human")
@@ -169,6 +189,19 @@ async def _execute_async(
             open_actions=[result["next_action"]],
         )
         await complete_agent_run(db, run_id, summary=result["summary"], status=result["status"])
+
+        # ── Agent memory persistence (feature-flagged) ───────────────────────
+        if settings.memory_enabled and result["status"] == "done":
+            try:
+                from .memory import store_incident_embedding  # noqa: PLC0415
+                await store_incident_embedding(
+                    db,
+                    incident_id=incident.id,
+                    service=incident.service,
+                    summary=result["summary"],
+                )
+            except Exception as exc:  # never fail on memory errors
+                logger.warning("memory_persist_failed", error=str(exc))
 
     # Invalidate cache *after* the DB transaction is committed
     await cache_delete("incidents:all", f"incident:{incident_id}")
