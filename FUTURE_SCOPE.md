@@ -17,26 +17,18 @@ latest known state without rediscovery.
 - Issue #8 (Prometheus Metrics + Grafana Dashboard): merged to `main` via PR #32
 - Issue #9 (OpenTelemetry Distributed Tracing): merged to `main` via PR #33
 - Issue #10 (Circuit Breaker for LLM Providers): merged to `main` via PR #34
-
-### PR status for Issue #7
-
-- Merged PR: `#30` (`feat/issue-7-structured-logging-observability` -> `main`)
-- GitHub Issue #7 status: closed.
+- Issue #11 (Human-in-the-Loop Approval Gate): PR #35 open — awaiting merge
 
 ### Current active implementation
 
-- none
+- PR #35 (Issue #11) open; merge before starting Issue #12
 
 ### Recently completed
 
-- Issue #10: merged PR `#34` and issue closed
-- Validation: `37 passed, 1 warning` on targeted tests
-- Issue #9: merged PR `#33` and issue closed
-- Validation: `23 passed, 1 warning` on targeted tests (`test_tracing`, `test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`)
-- Issue #8: merged PR `#32` and issue closed
-- Validation: `21 passed, 1 warning` on targeted tests (`test_metrics`, `test_health`, `test_execute`, `test_events`, `test_logging`)
-- Issue #6: merged PR `#31` and issue closed
-- Validation: `23 passed` on targeted tests (`test_events`, `test_incidents`, `test_execute`, `test_logging`)
+- Issue #11: PR #35 open; `human_review` interrupt node, MemorySaver checkpointer,
+  Redis-based approval signalling, `needs_human`/`rejected` run statuses,
+  `POST /runs/{run_id}/approve` and `/reject` endpoints
+- Validation: `118 passed, 1 warning` (full test suite)
 
 ### Open issues currently visible on GitHub
 

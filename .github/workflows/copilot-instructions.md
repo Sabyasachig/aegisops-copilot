@@ -25,11 +25,18 @@ Do not ask for a project overview if these files are available.
 - Prometheus + Grafana observability (Issue #8) is merged to `main` via PR #32.
 - OpenTelemetry distributed tracing (Issue #9) is merged to `main` via PR #33.
 - Circuit breaker for LLM providers (Issue #10) is merged to `main` via PR #34.
-- Issue #10 is closed.
-- Issue #7 is closed.
-- Issue #6 is closed.
-- Issue #8 is closed.
-- Issue #9 is closed.
+- Human-in-the-loop approval gate (Issue #11) is on PR #35 — awaiting merge.
+- Issues #6, #7, #8, #9, #10 are closed.
+
+## Files changed for Issue #11
+
+- `apps/api/src/aegisops_api/agents.py` — `human_review` interrupt node, `MemorySaver` checkpointer, `GraphInterrupt` handling, `resume_approved`/`resume_thread_id` params
+- `apps/api/src/aegisops_api/tasks.py` — `_wait_for_approval_decision()` Redis poller, approval gate in `_execute_async`, `status` passed to `complete_agent_run`
+- `apps/api/src/aegisops_api/models.py` — `RunStatus` extended with `needs_human`/`rejected`; `ApproveRunRequest`/`RejectRunRequest`
+- `apps/api/src/aegisops_api/settings.py` — `approval_timeout_seconds: int = 300`
+- `apps/api/src/aegisops_api/routers/runs.py` — `POST /runs/{run_id}/approve` and `/reject` (require_operator)
+- `apps/api/src/aegisops_api/db/repository.py` — `get_run_by_id`, `update_agent_run_status`
+- `apps/api/tests/test_approval.py` (new)
 
 ## Files changed for Issue #10
 
@@ -81,7 +88,17 @@ set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.e
 
 ## Test checkpoint
 
-Verified in this session:
+Verified in this session (Issue #11):
+
+```bash
+set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.env && set +a \
+&& cd /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/apps/api \
+&& PYTHONPATH=src /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.venv/bin/python -m pytest -q tests/
+```
+
+Result: `118 passed, 1 warning`.
+
+Previous checkpoint (Issue #10):
 
 ```bash
 set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.env && set +a \
@@ -118,5 +135,6 @@ Result: `21 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Start Issue #11 (Human-in-the-Loop Approval Gate).
-2. Create branch `feat/issue-11-human-in-the-loop-approval` from latest `main`.
+1. Merge PR #35 (Issue #11 — human-in-the-loop approval gate).
+2. After merge: `git checkout main && git pull origin main` and update all continuity files.
+3. Start Issue #12 (Tool Integrations — K8s, Datadog, Slack, Jira) on branch `feat/issue-12-tool-integrations`.
