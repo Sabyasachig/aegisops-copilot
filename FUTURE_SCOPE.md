@@ -17,18 +17,19 @@ latest known state without rediscovery.
 - Issue #8 (Prometheus Metrics + Grafana Dashboard): merged to `main` via PR #32
 - Issue #9 (OpenTelemetry Distributed Tracing): merged to `main` via PR #33
 - Issue #10 (Circuit Breaker for LLM Providers): merged to `main` via PR #34
-- Issue #11 (Human-in-the-Loop Approval Gate): PR #35 open — awaiting merge
+- Issue #11 (Human-in-the-Loop Approval Gate): merged to `main` via PR #35
+- Issue #12 (Tool Integrations — K8s, Datadog, Slack, Jira): PR #36 open — awaiting merge
 
 ### Current active implementation
 
-- PR #35 (Issue #11) open; merge before starting Issue #12
+- PR #36 (Issue #12) open; merge before starting Issue #13
 
 ### Recently completed
 
-- Issue #11: PR #35 open; `human_review` interrupt node, MemorySaver checkpointer,
-  Redis-based approval signalling, `needs_human`/`rejected` run statuses,
-  `POST /runs/{run_id}/approve` and `/reject` endpoints
-- Validation: `118 passed, 1 warning` (full test suite)
+- Issue #12: PR #36 open; `tools.py` with `@tool`-decorated K8s/Datadog/Slack/Jira integrations;
+  tools registered on graph via `ToolNode(ALL_TOOLS)`; `gather_evidence` enriched with K8s + Datadog;
+  `package_outcome` triggers Slack notification + Jira ticket; all tools gracefully dry-run when unconfigured
+- Validation: `131 passed, 1 warning` (full test suite)
 
 ### Open issues currently visible on GitHub
 
