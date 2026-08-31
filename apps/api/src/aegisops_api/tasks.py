@@ -201,7 +201,12 @@ async def _execute_async(
             summary=result["summary"],
             open_actions=[result["next_action"]],
         )
-        await complete_agent_run(db, run_id, summary=result["summary"], status=result["status"])
+        await complete_agent_run(
+            db, run_id,
+            summary=result["summary"],
+            status=result["status"],
+            confidence=result.get("confidence"),
+        )
 
         # ── Agent memory persistence (feature-flagged) ───────────────────────
         if settings.memory_enabled and result["status"] == "done":
@@ -234,6 +239,7 @@ async def _execute_async(
         "graph_run_id": result["graph_run_id"],
         "summary": result["summary"],
         "next_action": result["next_action"],
+        "confidence": result.get("confidence"),
     }
     clear_log_context()
     return payload
