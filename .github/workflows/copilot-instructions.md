@@ -26,8 +26,8 @@ Do not ask for a project overview if these files are available.
 - OpenTelemetry distributed tracing (Issue #9) is merged to `main` via PR #33.
 - Circuit breaker for LLM providers (Issue #10) is merged to `main` via PR #34.
 - Human-in-the-loop approval gate (Issue #11) is merged to `main` via PR #35.
-- Tool integrations K8s/Datadog/Slack/Jira (Issue #12) is on PR #36 — awaiting merge.
-- Issues #6, #7, #8, #9, #10, #11 are closed.
+- Tool integrations K8s/Datadog/Slack/Jira (Issue #12) is merged to `main` via PR #36.
+- Issues #6, #7, #8, #9, #10, #11, #12 are closed.
 
 ## Files changed for Issue #12
 

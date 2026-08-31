@@ -74,6 +74,11 @@ class Settings(BaseSettings):
     jira_email: str | None = None
     jira_api_token: str | None = None
     jira_project_key: str | None = None
+    # Agent memory / RAG (pgvector)
+    memory_enabled: bool = False
+    memory_embedding_model: str = "text-embedding-3-small"
+    memory_embedding_dim: int = 1536
+    memory_top_k: int = 3
 
 
 @lru_cache(maxsize=1)

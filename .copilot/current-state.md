@@ -21,15 +21,14 @@ Last updated: 2026-08-31
 - Issue #9: OpenTelemetry distributed tracing (merged to main via PR #33)
 - Issue #10: Circuit breaker for LLM providers (merged to main via PR #34)
 - Issue #11: Human-in-the-loop approval gate (merged to main via PR #35)
-- Issue #12: Tool integrations K8s, Datadog, Slack, Jira (PR #36 open — awaiting merge)
+- Issue #12: Tool integrations K8s, Datadog, Slack, Jira (merged to main via PR #36)
 
 ## Active Work
 
-- PR #36 open for Issue #12; merge and sync before starting #13
+- Issue #13 (Agent Memory + Context Store — pgvector) in progress on branch `feat/issue-13-agent-memory-pgvector`
 
 ## Open Issues Snapshot
 
-- #12 tool integrations (K8s, Datadog, Slack, Jira)
 - #13 agent memory + context store (pgvector)
 - #14 RAG runbook knowledge base
 - #15 confidence scoring + auto-escalation

@@ -47,6 +47,7 @@ class IncidentOpsState(TypedDict):
     response_draft: NotRequired[str]
     runbook: NotRequired[str]
     next_action: NotRequired[str]
+    similar_incidents: NotRequired[str]
 
 
 class IncidentOpsResult(TypedDict):
@@ -92,18 +93,20 @@ def _generate_role_output(
 ) -> str:
     started = perf_counter()
     logger.info("llm_call_started", node=role)
+    human_content = (
+        f"Incident ID: {state['incident_id']}\n"
+        f"Title: {state['title']}\n"
+        f"Service: {state['service']}\n"
+        f"Severity: {state['severity']}\n"
+        f"Owner: {state['owner']}\n"
+        f"Summary: {state['summary']}"
+    )
+    similar_ctx = state.get("similar_incidents", "")
+    if similar_ctx:
+        human_content = f"{human_content}\n\n{similar_ctx}"
     messages = [
         SystemMessage(content=system_prompt),
-        HumanMessage(
-            content=(
-                f"Incident ID: {state['incident_id']}\n"
-                f"Title: {state['title']}\n"
-                f"Service: {state['service']}\n"
-                f"Severity: {state['severity']}\n"
-                f"Owner: {state['owner']}\n"
-                f"Summary: {state['summary']}"
-            )
-        ),
+        HumanMessage(content=human_content),
     ]
     with tracer.start_as_current_span(
         "llm.call",
@@ -213,6 +216,7 @@ def run_incident_workflow(
     *,
     resume_approved: bool | None = None,
     resume_thread_id: str | None = None,
+    similar_incidents: str | None = None,
 ) -> IncidentOpsResult:
     def emit(event: str, **payload: str) -> None:
         if event_emitter is not None:
@@ -399,6 +403,7 @@ def run_incident_workflow(
                         "response_draft": "",
                         "runbook": "",
                         "next_action": "",
+                        "similar_incidents": similar_incidents or "",
                     },
                     config=config,
                 )
