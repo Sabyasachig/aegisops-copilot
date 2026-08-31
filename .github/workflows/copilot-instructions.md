@@ -25,8 +25,17 @@ Do not ask for a project overview if these files are available.
 - Prometheus + Grafana observability (Issue #8) is merged to `main` via PR #32.
 - OpenTelemetry distributed tracing (Issue #9) is merged to `main` via PR #33.
 - Circuit breaker for LLM providers (Issue #10) is merged to `main` via PR #34.
-- Human-in-the-loop approval gate (Issue #11) is on PR #35 — awaiting merge.
-- Issues #6, #7, #8, #9, #10 are closed.
+- Human-in-the-loop approval gate (Issue #11) is merged to `main` via PR #35.
+- Tool integrations K8s/Datadog/Slack/Jira (Issue #12) is on PR #36 — awaiting merge.
+- Issues #6, #7, #8, #9, #10, #11 are closed.
+
+## Files changed for Issue #12
+
+- `apps/api/src/aegisops_api/tools.py` (new) — four `@tool` functions: `k8s_get_pod_status`, `datadog_get_metric_snapshot`, `slack_post_incident_summary`, `jira_create_incident_ticket`; `ALL_TOOLS` registry
+- `apps/api/src/aegisops_api/settings.py` — tool integration config fields
+- `apps/api/src/aegisops_api/agents.py` — import ALL_TOOLS + ToolNode; tool calls in `gather_evidence` and `package_outcome`
+- `apps/api/pyproject.toml` — `httpx` moved to main deps
+- `apps/api/tests/test_tools.py` (new)
 
 ## Files changed for Issue #11
 
@@ -88,7 +97,17 @@ set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.e
 
 ## Test checkpoint
 
-Verified in this session (Issue #11):
+Verified in this session (Issue #12):
+
+```bash
+set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.env && set +a \
+&& cd /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/apps/api \
+&& PYTHONPATH=src /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.venv/bin/python -m pytest -q tests/
+```
+
+Result: `131 passed, 1 warning`.
+
+Previous checkpoint (Issue #11):
 
 ```bash
 set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.env && set +a \
@@ -135,6 +154,6 @@ Result: `21 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Merge PR #35 (Issue #11 — human-in-the-loop approval gate).
+1. Merge PR #36 (Issue #12 — tool integrations).
 2. After merge: `git checkout main && git pull origin main` and update all continuity files.
-3. Start Issue #12 (Tool Integrations — K8s, Datadog, Slack, Jira) on branch `feat/issue-12-tool-integrations`.
+3. Start Issue #13 (Agent Memory + Context Store — pgvector) on branch `feat/issue-13-agent-memory-pgvector`.

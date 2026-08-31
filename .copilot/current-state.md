@@ -20,11 +20,12 @@ Last updated: 2026-08-31
 - Issue #8: Prometheus + Grafana observability (merged to main via PR #32)
 - Issue #9: OpenTelemetry distributed tracing (merged to main via PR #33)
 - Issue #10: Circuit breaker for LLM providers (merged to main via PR #34)
-- Issue #11: Human-in-the-loop approval gate (PR #35 open — awaiting merge)
+- Issue #11: Human-in-the-loop approval gate (merged to main via PR #35)
+- Issue #12: Tool integrations K8s, Datadog, Slack, Jira (PR #36 open — awaiting merge)
 
 ## Active Work
 
-- PR #35 open for Issue #11; merge and sync before starting #12
+- PR #36 open for Issue #12; merge and sync before starting #13
 
 ## Open Issues Snapshot
 
@@ -41,7 +42,7 @@ Last updated: 2026-08-31
 
 ## Next Suggested Issue
 
-- #12 tool integrations (K8s, Datadog, Slack, Jira)
+- #13 agent memory + context store (pgvector)
 
 ## Session Resume Rule
 
