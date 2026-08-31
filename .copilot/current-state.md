@@ -23,16 +23,14 @@ Last updated: 2026-08-31
 - Issue #11: Human-in-the-loop approval gate (merged to main via PR #35)
 - Issue #12: Tool integrations K8s, Datadog, Slack, Jira (merged to main via PR #36)
 - Issue #13: Agent memory + pgvector context store (merged to main via PR #37)
+- Issue #14: RAG runbook knowledge base (merged to main via PR #38)
 
 ## Active Work
 
-- Issue #14 (RAG Runbook Knowledge Base) — PR #38 open on branch `feat/issue-14-rag-runbook-kb`
-  - All code merged into PR; awaiting review/merge
-  - 157 tests passing (142 prior + 15 new)
+None — ready to start Issue #15.
 
 ## Open Issues Snapshot
 
-- #14 RAG runbook knowledge base (PR #38 open)
 - #15 confidence scoring + auto-escalation
 - #16 audit log
 - #17 OpsGenie and Alertmanager webhook handlers
@@ -50,5 +48,4 @@ Last updated: 2026-08-31
 On next session start:
 1. read `execute-steps.md`
 2. read this file (`.copilot/current-state.md`)
-3. if PR #38 is merged, update continuity files then start Issue #15
-4. otherwise merge PR #38 first, then update and start #15
+3. start Issue #15 on branch `feat/issue-15-confidence-scoring`

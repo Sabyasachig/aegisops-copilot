@@ -20,22 +20,19 @@ latest known state without rediscovery.
 - Issue #11 (Human-in-the-Loop Approval Gate): merged to `main` via PR #35
 - Issue #12 (Tool Integrations — K8s, Datadog, Slack, Jira): merged to `main` via PR #36
 - Issue #13 (Agent Memory + Context Store — pgvector): merged to `main` via PR #37
+- Issue #14 (RAG Runbook Knowledge Base): merged to `main` via PR #38
 
 ### Current active implementation
 
-- Issue #14 (RAG Runbook Knowledge Base) — PR #38 open on branch `feat/issue-14-rag-runbook-kb`
+- Issue #15 (Confidence Scoring + Auto-Escalation) — up next on branch `feat/issue-15-confidence-scoring`
 
 ### Recently completed
 
-- Issue #14: PR #38 open; `RunbookRow` ORM + word-based chunker + cosine retrieval in `memory.py`;
+- Issue #14: PR #38 merged; `RunbookRow` ORM + word-based chunker + cosine retrieval in `memory.py`;
   `gather_evidence` injects top-k runbook chunks into system prompt; `POST /api/admin/runbooks`
   endpoint (admin-only); startup ingestion from `AIOPS_RUNBOOK_DIR`; Alembic migration 0005;
   `test_runbooks.py` (15 new tests)
 - Validation: `157 passed, 1 warning` (full test suite)
-- Issue #13: PR #37 merged; `IncidentEmbeddingRow` (MemoryBase) + `generate_embedding` + SHA-256
-  dummy fallback; `store_incident_embedding` / `find_similar_incidents` in `memory.py`;
-  `gather_evidence` injects similar-incident context; Alembic migration 0004; `test_memory.py` (11 tests)
-- Validation: `142 passed, 1 warning` (pre-#14 full suite)
 
 ### Open issues currently visible on GitHub
 

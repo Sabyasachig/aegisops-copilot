@@ -28,8 +28,8 @@ Do not ask for a project overview if these files are available.
 - Human-in-the-loop approval gate (Issue #11) is merged to `main` via PR #35.
 - Tool integrations K8s/Datadog/Slack/Jira (Issue #12) is merged to `main` via PR #36.
 - Agent memory + pgvector context store (Issue #13) is merged to `main` via PR #37.
-- RAG runbook knowledge base (Issue #14) — PR #38 open on `feat/issue-14-rag-runbook-kb`.
-- Issues #6, #7, #8, #9, #10, #11, #12, #13 are closed.
+- RAG runbook knowledge base (Issue #14) is merged to `main` via PR #38.
+- Issues #6, #7, #8, #9, #10, #11, #12, #13, #14 are closed.
 
 ## Files changed for Issue #12
 
@@ -193,6 +193,6 @@ Result: `142 passed, 1 warning`.
 
 ## Next recommended actions
 
-1. Merge PR #38 (Issue #14 — RAG runbook knowledge base).
-2. After merge: `git checkout main && git pull origin main` and update all continuity files.
-3. Start Issue #15 (Confidence Scoring + Auto-Escalation) on branch `feat/issue-15-confidence-scoring`.
+1. Start Issue #15 (Confidence Scoring + Auto-Escalation) on branch `feat/issue-15-confidence-scoring`.
+2. After implementation, push and open PR with `Closes #15`.
+3. After merge, update all continuity files and move to Issue #16.
