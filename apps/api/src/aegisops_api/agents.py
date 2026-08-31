@@ -10,6 +10,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.errors import GraphInterrupt
 from langgraph.graph import END, START, StateGraph
+from langgraph.prebuilt import ToolNode
 from langgraph.types import Command, interrupt
 from langsmith import traceable
 from opentelemetry import trace
@@ -18,6 +19,13 @@ from .llm import call_with_fallback
 from .logging_config import bind_log_context, get_logger
 from .metrics import add_llm_tokens
 from .models import Incident, LLMProvider
+from .tools import (
+    ALL_TOOLS,
+    datadog_get_metric_snapshot,
+    jira_create_incident_ticket,
+    k8s_get_pod_status,
+    slack_post_incident_summary,
+)
 from .tracing import get_current_trace_id
 
 logger = get_logger(__name__)
@@ -261,8 +269,16 @@ def run_incident_workflow(
                     provider,
                     model_name,
                 )
+                # Enrich evidence with real-system tool data
+                k8s_out = k8s_get_pod_status.invoke({"service": state["service"]})
+                dd_out = datadog_get_metric_snapshot.invoke({"service": state["service"]})
+            combined_evidence = (
+                f"{evidence_text}\n\n"
+                f"--- K8s Pod Status ---\n{k8s_out}\n\n"
+                f"--- Datadog Metrics ---\n{dd_out}"
+            )
             result = {
-                "evidence": evidence_text,
+                "evidence": combined_evidence,
                 "next_action": f"Correlate incident {state['incident_id']} against logs, traces, and deployment metadata.",
             }
             logger.info("node_completed", node="evidence")
@@ -314,10 +330,28 @@ def run_incident_workflow(
             logger.info("node_started", node="package")
             emit("node_started", node="package", run_id=graph_run_id)
             with tracer.start_as_current_span("incident.node.package"):
+                from .settings import get_settings as _get_settings
+                _settings = _get_settings()
+                slack_msg = (
+                    f"*[{state.get('severity', 'unknown').upper()}]* "
+                    f"{state.get('title', '')}\n"
+                    f"{(state.get('response_draft') or '')[:400]}"
+                )
+                slack_out = slack_post_incident_summary.invoke({
+                    "channel": _settings.slack_default_channel,
+                    "message": slack_msg,
+                })
+                jira_out = jira_create_incident_ticket.invoke({
+                    "summary": f"Post-incident review: {state.get('title', '')}",
+                    "description": state.get("response_draft") or state.get("summary", ""),
+                })
                 result = {
-                    "next_action": "Await human approval and keep the evidence packet attached to the incident record."
+                    "next_action": (
+                        "Await human approval and keep the evidence packet attached to the incident record. "
+                        f"Notifications: {slack_out} | Jira: {jira_out}"
+                    )
                 }
-            logger.info("node_completed", node="package")
+            logger.info("node_completed", node="package", slack=slack_out, jira=jira_out)
             emit("node_completed", node="package", run_id=graph_run_id)
             return result
 
@@ -332,6 +366,8 @@ def run_incident_workflow(
         graph.add_node("human_review", human_review)
         graph.add_node("response", draft_response)
         graph.add_node("package", package_outcome)
+        # Register integration tools on the graph for future LLM-directed tool calls
+        graph.add_node("tools", ToolNode(ALL_TOOLS))
         graph.add_edge(START, "assess")
         graph.add_edge("assess", "evidence")
         graph.add_edge("evidence", "human_review")

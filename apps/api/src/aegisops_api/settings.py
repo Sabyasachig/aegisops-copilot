@@ -63,6 +63,17 @@ class Settings(BaseSettings):
     llm_fallback_chain: list[str] = Field(
         default_factory=lambda: ["groq", "openai", "anthropic"]
     )
+    # Tool integrations — all optional; tools fall back to dry-run when unset
+    k8s_enabled: bool = False
+    datadog_api_key: str | None = None
+    datadog_app_key: str | None = None
+    datadog_site: str = "datadoghq.com"
+    slack_webhook_url: str | None = None
+    slack_default_channel: str = "#incidents"
+    jira_url: str | None = None
+    jira_email: str | None = None
+    jira_api_token: str | None = None
+    jira_project_key: str | None = None
 
 
 @lru_cache(maxsize=1)
