@@ -29,6 +29,7 @@ from .routers.providers import router as providers_router
 from .routers.runs import router as runs_router
 from .routers.tasks import router as tasks_router
 from .routers.webhooks import router as webhooks_router
+from .routers.runbooks import router as runbooks_router
 from .settings import get_settings
 from .store import incidents as _seed_incidents  # seed data only
 from .tracing import instrument_fastapi
@@ -40,6 +41,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await init_db()  # create tables if not present (Alembic owns this in prod)
     await _seed_db()  # insert default incidents if the table is empty
     get_redis()  # establish Redis connection pool
+    await _ingest_runbooks()  # no-op unless AIOPS_RUNBOOK_DIR + AIOPS_MEMORY_ENABLED
     yield
     # ── Shutdown ─────────────────────────────────────────────────────────────
     await close_redis()
@@ -81,6 +83,21 @@ async def _seed_db() -> None:
                     await create_user(db, username, hash_password(password), role=role)
 
 
+async def _ingest_runbooks() -> None:
+    """Load .md runbooks from AIOPS_RUNBOOK_DIR into the vector store on startup.
+
+    No-op when AIOPS_MEMORY_ENABLED=false or AIOPS_RUNBOOK_DIR is not set.
+    """
+    settings = get_settings()
+    if not (settings.memory_enabled and settings.runbook_dir):
+        return
+
+    from .memory import ingest_runbook_directory  # noqa: PLC0415
+
+    async with AsyncSessionLocal() as db:
+        await ingest_runbook_directory(db, settings.runbook_dir)
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings)
@@ -115,6 +132,7 @@ def create_app() -> FastAPI:
     app.include_router(tasks_router, prefix="/api")
     app.include_router(providers_router, prefix="/api")
     app.include_router(webhooks_router, prefix="/api")
+    app.include_router(runbooks_router, prefix="/api")
 
     Instrumentator(
         should_group_status_codes=True,

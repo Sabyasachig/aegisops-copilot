@@ -107,11 +107,14 @@ async def _execute_async(
 
         # ── Agent memory retrieval (feature-flagged; lazy-imported) ──────────
         similar_ctx = ""
+        runbook_ctx = ""
         settings = get_settings()
         if settings.memory_enabled:
             try:
                 from .memory import (  # noqa: PLC0415
+                    find_relevant_runbooks,
                     find_similar_incidents,
+                    format_runbooks_for_prompt,
                     format_similar_incidents_for_prompt,
                 )
                 similar = await find_similar_incidents(
@@ -122,6 +125,15 @@ async def _execute_async(
                 similar_ctx = format_similar_incidents_for_prompt(similar)
                 if similar_ctx:
                     logger.info("similar_incidents_retrieved", count=len(similar))
+
+                runbooks = await find_relevant_runbooks(
+                    db,
+                    query=f"{incident.title}\n{incident.summary}",
+                    service=incident.service,
+                )
+                runbook_ctx = format_runbooks_for_prompt(runbooks)
+                if runbook_ctx:
+                    logger.info("runbooks_retrieved", count=len(runbooks))
             except Exception as exc:  # never fail the workflow on memory errors
                 logger.warning("memory_retrieval_failed", error=str(exc))
 
@@ -132,6 +144,7 @@ async def _execute_async(
             user_id=user_id,
             event_emitter=_emit_workflow_event,
             similar_incidents=similar_ctx or None,
+            runbook_context=runbook_ctx or None,
         )  # type: ignore[arg-type]
 
         # ── Human-in-the-loop approval gate ──────────────────────────────────

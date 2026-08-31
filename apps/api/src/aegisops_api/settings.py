@@ -79,6 +79,8 @@ class Settings(BaseSettings):
     memory_embedding_model: str = "text-embedding-3-small"
     memory_embedding_dim: int = 1536
     memory_top_k: int = 3
+    # Runbook knowledge base — if set, .md files in this dir are ingested on startup
+    runbook_dir: str | None = None
 
 
 @lru_cache(maxsize=1)
