@@ -81,6 +81,8 @@ class Settings(BaseSettings):
     memory_top_k: int = 3
     # Runbook knowledge base — if set, .md files in this dir are ingested on startup
     runbook_dir: str | None = None
+    # Confidence scoring — runs with LLM confidence below threshold escalate to human
+    confidence_threshold: float = 0.6
 
 
 @lru_cache(maxsize=1)

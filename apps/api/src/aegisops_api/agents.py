@@ -35,6 +35,46 @@ tracer = trace.get_tracer(__name__)
 _approval_checkpointer = MemorySaver()
 
 
+def _assess_confidence(
+    evidence: str,
+    response_draft: str,
+    provider: str,
+    model_name: str | None,
+) -> float:
+    """Ask the LLM to self-rate its analysis confidence (0.0–1.0).
+
+    Returns 0.5 (conservative default) on any LLM or parsing failure so that
+    uncertain incidents are always escalated rather than silently auto-actioned.
+    """
+    import json as _json
+    import re as _re
+
+    prompt = (
+        "You are a calibration agent. Rate your confidence in the accuracy and "
+        "completeness of the incident analysis and response draft below.\n"
+        "Consider: evidence quality, hypothesis strength, and response plan clarity.\n"
+        "Respond ONLY with valid JSON — no other text: "
+        '{"confidence": <float 0.0-1.0>, "reason": "<one sentence>"}'
+        f"\n\nEvidence summary:\n{evidence[:600]}\n\n"
+        f"Response draft:\n{response_draft[:600]}"
+    )
+    messages = [
+        SystemMessage(content="Return only JSON. No prose."),
+        HumanMessage(content=prompt),
+    ]
+    try:
+        response, _ = call_with_fallback(messages, provider, model_name)
+        content = str(getattr(response, "content", "") or "").strip()
+        match = _re.search(r"\{[^}]+\}", content, _re.DOTALL)
+        if match:
+            data = _json.loads(match.group())
+            score = float(data.get("confidence", 0.5))
+            return max(0.0, min(1.0, score))
+    except Exception:  # noqa: BLE001
+        pass
+    return 0.5
+
+
 class IncidentOpsState(TypedDict):
     incident_id: str
     title: str
@@ -49,6 +89,7 @@ class IncidentOpsState(TypedDict):
     next_action: NotRequired[str]
     similar_incidents: NotRequired[str]
     runbook_context: NotRequired[str]
+    confidence: NotRequired[float]
 
 
 class IncidentOpsResult(TypedDict):
@@ -58,6 +99,7 @@ class IncidentOpsResult(TypedDict):
     next_action: str
     trace_id: NotRequired[str]
     thread_id: NotRequired[str]  # present when status == "needs_human"
+    confidence: NotRequired[float]
 
 
 def _extract_total_tokens(response) -> int | None:
@@ -342,34 +384,59 @@ def run_incident_workflow(
             emit("node_completed", node="response", run_id=graph_run_id)
             return result
 
-        def package_outcome(state: IncidentOpsState) -> dict[str, str]:
+        def package_outcome(state: IncidentOpsState) -> dict:
             logger.info("node_started", node="package")
             emit("node_started", node="package", run_id=graph_run_id)
             with tracer.start_as_current_span("incident.node.package"):
                 from .settings import get_settings as _get_settings
                 _settings = _get_settings()
-                slack_msg = (
-                    f"*[{state.get('severity', 'unknown').upper()}]* "
-                    f"{state.get('title', '')}\n"
-                    f"{(state.get('response_draft') or '')[:400]}"
+
+                # ── Confidence scoring ────────────────────────────────────────
+                confidence = _assess_confidence(
+                    evidence=state.get("evidence", ""),
+                    response_draft=state.get("response_draft", ""),
+                    provider=provider,
+                    model_name=model_name,
                 )
-                slack_out = slack_post_incident_summary.invoke({
-                    "channel": _settings.slack_default_channel,
-                    "message": slack_msg,
-                })
-                jira_out = jira_create_incident_ticket.invoke({
-                    "summary": f"Post-incident review: {state.get('title', '')}",
-                    "description": state.get("response_draft") or state.get("summary", ""),
-                })
-                result = {
-                    "next_action": (
-                        "Await human approval and keep the evidence packet attached to the incident record. "
-                        f"Notifications: {slack_out} | Jira: {jira_out}"
+                logger.info(
+                    "confidence_assessed",
+                    confidence=confidence,
+                    threshold=_settings.confidence_threshold,
+                )
+
+                if confidence >= _settings.confidence_threshold:
+                    # High confidence — fire auto-actions
+                    slack_msg = (
+                        f"*[{state.get('severity', 'unknown').upper()}]* "
+                        f"{state.get('title', '')}\n"
+                        f"{(state.get('response_draft') or '')[:400]}"
                     )
-                }
-            logger.info("node_completed", node="package", slack=slack_out, jira=jira_out)
+                    slack_out = slack_post_incident_summary.invoke({
+                        "channel": _settings.slack_default_channel,
+                        "message": slack_msg,
+                    })
+                    jira_out = jira_create_incident_ticket.invoke({
+                        "summary": f"Post-incident review: {state.get('title', '')}",
+                        "description": state.get("response_draft") or state.get("summary", ""),
+                    })
+                    next_action = (
+                        "Await human approval and keep the evidence packet attached "
+                        f"to the incident record. Notifications: {slack_out} | Jira: {jira_out}"
+                    )
+                    logger.info("node_completed", node="package",
+                                slack=slack_out, jira=jira_out)
+                else:
+                    # Low confidence — skip auto-actions; escalate to human
+                    next_action = (
+                        f"Low confidence ({confidence:.2f}) \u2014 escalated for human review. "
+                        "Auto-notifications and ticket creation skipped. "
+                        "Review evidence and response draft before taking action."
+                    )
+                    logger.info("node_completed", node="package",
+                                auto_actions_skipped=True, confidence=confidence)
+
             emit("node_completed", node="package", run_id=graph_run_id)
-            return result
+            return {"confidence": confidence, "next_action": next_action}
 
         def _route_after_review(state: IncidentOpsState) -> str:
             return "__end__" if state.get("next_action") == "__REJECTED__" else "response"
@@ -433,9 +500,20 @@ def run_incident_workflow(
 
         # ── Result packaging ──────────────────────────────────────────────────
 
+        confidence: float | None = result.get("confidence")
+
         if result.get("next_action") == "__REJECTED__":
             workflow_status = "rejected"
             emit("workflow_rejected", run_id=graph_run_id, status="rejected")
+        elif confidence is not None:
+            from .settings import get_settings as _get_settings
+            if confidence < _get_settings().confidence_threshold:
+                workflow_status = "needs_human"
+                emit("workflow_low_confidence", run_id=graph_run_id,
+                     confidence=str(round(confidence, 3)))
+            else:
+                workflow_status = "done"
+                emit("workflow_done", run_id=graph_run_id, status="done")
         else:
             workflow_status = "done"
             emit("workflow_done", run_id=graph_run_id, status="done")
@@ -446,8 +524,10 @@ def run_incident_workflow(
             "summary": result.get("response_draft") or result.get("summary", ""),
             "next_action": result.get("next_action", "Await human approval"),
         }
+        if confidence is not None:
+            payload["confidence"] = confidence
         if trace_id is not None:
             payload["trace_id"] = trace_id
         logger.info("workflow_completed", graph_run_id=graph_run_id,
-                    status=workflow_status, trace_id=trace_id)
+                    status=workflow_status, confidence=confidence, trace_id=trace_id)
         return payload

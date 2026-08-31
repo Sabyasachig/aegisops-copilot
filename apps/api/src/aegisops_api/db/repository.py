@@ -40,6 +40,7 @@ def _row_to_run(row: AgentRunRow) -> AgentRun:
         finished_at=row.finished_at,
         summary=row.summary,
         artifact_url=row.artifact_url,
+        confidence=row.confidence,
     )
 
 
@@ -143,6 +144,7 @@ async def complete_agent_run(
     run_id: str,
     summary: str,
     status: str = "done",
+    confidence: float | None = None,
 ) -> AgentRun | None:
     result = await db.execute(select(AgentRunRow).where(AgentRunRow.id == run_id))
     row = result.scalar_one_or_none()
@@ -150,6 +152,7 @@ async def complete_agent_run(
         return None
     row.status = status
     row.summary = summary
+    row.confidence = confidence
     row.finished_at = datetime.now(UTC)
     observe_agent_run_duration((row.finished_at - row.started_at).total_seconds())
     await db.commit()

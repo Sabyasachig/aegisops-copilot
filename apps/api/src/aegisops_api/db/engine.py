@@ -49,7 +49,13 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """Create all tables that do not yet exist.
 
+    In testing mode (AIOPS_TESTING=true) the schema is dropped and recreated on
+    every startup so that column additions are always reflected without running
+    Alembic migrations against the test database.
+
     For production, prefer running ``alembic upgrade head`` before startup.
     """
     async with engine.begin() as conn:
+        if os.getenv("AIOPS_TESTING") == "true":
+            await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)

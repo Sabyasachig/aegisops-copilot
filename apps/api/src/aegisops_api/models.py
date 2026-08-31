@@ -34,6 +34,7 @@ class AgentRun(BaseModel):
     finished_at: datetime | None = None
     summary: str
     artifact_url: str | None = None
+    confidence: float | None = None
 
 
 class ExecuteIncidentRequest(BaseModel):
@@ -47,6 +48,7 @@ class ExecuteIncidentResponse(BaseModel):
     summary: str
     next_action: str
     run_id: str
+    confidence: float | None = None
 
 
 class ApproveRunRequest(BaseModel):
