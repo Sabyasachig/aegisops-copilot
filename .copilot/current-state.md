@@ -27,7 +27,7 @@ Last updated: 2026-08-31
 
 ## Active Work
 
-None — ready to start Issue #15.
+- Issue #16: audit log
 
 ## Open Issues Snapshot
 

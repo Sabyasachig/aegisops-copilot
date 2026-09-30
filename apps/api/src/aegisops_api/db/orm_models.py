@@ -59,6 +59,20 @@ class AgentRunRow(Base):
     incident: Mapped[IncidentRow] = relationship("IncidentRow", back_populates="runs")
 
 
+class AuditLogRow(Base):
+    __tablename__ = "audit_logs"
+    __table_args__ = (Index("ix_audit_logs_resource_id", "resource_id"),)
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    actor: Mapped[str] = mapped_column(String(128), nullable=False)
+    action: Mapped[str] = mapped_column(String(128), nullable=False)
+    resource_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_utcnow
+    )
+
+
 class UserRow(Base):
     __tablename__ = "users"
 

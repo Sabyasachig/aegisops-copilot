@@ -21,6 +21,7 @@ from .db.repository import (
 )
 from .limiter import limiter
 from .logging_config import bind_log_context, clear_log_context, configure_logging
+from .routers.audit import router as audit_router
 from .routers.auth import router as auth_router
 from .routers.execute import router as execute_router
 from .routers.health import router as health_router
@@ -126,6 +127,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router, prefix="/api")
     app.include_router(auth_router, prefix="/api")
+    app.include_router(audit_router, prefix="/api")
     app.include_router(incidents_router, prefix="/api")
     app.include_router(runs_router, prefix="/api")
     app.include_router(execute_router, prefix="/api")

@@ -1,49 +1,63 @@
-# Copilot Session Bootstrap Prompt
+# AegisOps Copilot instructions
 
-Use this prompt at the beginning of each coding session for this repository.
+Use this prompt at the start of each coding session for this repository.
 
-## Goal
+## Repository context
 
-Start from existing repository context without asking the user for a repeated project overview.
+This repo contains:
+
+- Python 3.11+ FastAPI control plane under `apps/api`
+- LangGraph agent orchestration and tool integrations in `apps/api/src/aegisops_api`
+- PostgreSQL + Redis backing services via Docker Compose
+- Next.js dashboard under `apps/web`
+- Repository-level continuity docs in `.copilot/`, `.github/workflows/`, and `FUTURE_SCOPE.md`
+
+The project is organized around issue-driven delivery and must preserve the existing architecture patterns rather than introducing ad hoc structure.
 
 ## Mandatory startup sequence
 
-Read these files in order before making changes:
+Before making code changes, read these files in this order:
 
-1. execute-steps.md
-2. .copilot/current-state.md
-3. .github/workflows/copilot-instructions.md
-4. FUTURE_SCOPE.md
+1. `execute-steps.md`
+2. `.copilot/current-state.md`
+3. `.github/workflows/copilot-instructions.md`
+4. `FUTURE_SCOPE.md`
 
-If these files exist, do not ask the user for project overview again.
-Start directly from Active Work in .copilot/current-state.md.
+If those files exist, do not ask the user for a project overview again. Start from the active work in `.copilot/current-state.md` and continue it before opening a new task.
 
-## Execution rules
+## Operating rules
 
-- Source repository environment variables from root .env before running commands.
-- Use the repository Python interpreter at .venv/bin/python.
-- If Active Work exists, continue it first; otherwise select one open issue.
-- Create a feature branch from main using feat/issue-<id>-<slug> or fix/issue-<id>-<slug>.
-- Implement with architecture-safe changes and matching tests.
-- Push branch and open PR.
-- PR body must include one of: Closes #<id>, Fixes #<id>, Resolves #<id>.
-- Use .github/pull_request_template.md for PR description.
-- After merge, update continuity files:
-  - .copilot/current-state.md
-  - FUTURE_SCOPE.md
-  - .github/workflows/copilot-instructions.md
+- Source repo environment variables from the root `.env` before running commands.
+- Use the repository Python interpreter at `.venv/bin/python`.
+- Prefer existing project patterns and naming conventions from the FastAPI + LangGraph codebase.
+- If Active Work is present, continue it first; otherwise select one open issue from the repo status and start from there.
+- Create a branch from `main` using `feat/issue-<id>-<slug>` or `fix/issue-<id>-<slug>` naming.
+- Keep edits narrow, architecture-safe, and consistent with the existing layered design.
+- Add or update tests whenever behavior changes.
+- Run focused validation before claiming completion.
+- Push the branch and open a PR when the change is ready.
+- Use `.github/pull_request_template.md` for PR details.
+- PR body must include one of: `Closes #<id>`, `Fixes #<id>`, or `Resolves #<id>`.
+- After merge, update the continuity files:
+  - `.copilot/current-state.md`
+  - `FUTURE_SCOPE.md`
+  - `.github/workflows/copilot-instructions.md`
 
-## PR and merge completion checklist
+## Repo-specific validation pattern
 
-- Link the open issue in PR with closing keyword.
-- Include exact test commands and test results in PR body.
-- After merge, confirm issue is closed.
-- Move completed item into Completed Work in .copilot/current-state.md.
-- Set Next Suggested Issue for the next session.
+Use the project environment and test conventions from the repo state, for example:
+
+```bash
+set -a && source /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.env && set +a
+cd /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/apps/api
+PYTHONPATH=src /Users/sabyasachighosh/Projects/multi_agent/aegisops-copilot/.venv/bin/python -m pytest -q tests/
+```
+
+Do not rely on an unrelated global Python environment. Prefer the repo-local `.venv` and the root `.env` configuration.
 
 ## Definition of done
 
-- Code merged to main
-- Linked issue auto-closed
-- Tests executed and reported
-- Continuity state updated for next session
+- The issue is implemented in the repo without architectural drift
+- Tests covering the change pass
+- The branch is ready for PR review with a closing issue reference
+- Continuity and state files are updated for the next session
