@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..auth import get_current_user, require_operator
 from ..cache import get_redis
 from ..db.engine import get_db
-from ..db.repository import get_run_by_id, list_runs_for_incident as _list_runs
+from ..db.repository import get_run_by_id, list_runs_for_incident as _list_runs, log_audit_event
 from ..models import RejectRunRequest
 
 router = APIRouter(tags=["runs"], dependencies=[Depends(get_current_user)])
@@ -41,6 +41,13 @@ async def approve_run(
         3600,
         json.dumps({"action": "approve", "user": current_user}),
     )
+    await log_audit_event(
+        db,
+        actor=current_user,
+        action="run_approved",
+        resource_id=run_id,
+        payload={"run_id": run_id, "incident_id": run.incident_id, "decision": "approve"},
+    )
     return {"run_id": run_id, "decision": "approved", "by": current_user}
 
 
@@ -66,5 +73,12 @@ async def reject_run(
         f"approval_decision:{run_id}",
         3600,
         json.dumps({"action": "reject", "reason": reason, "user": current_user}),
+    )
+    await log_audit_event(
+        db,
+        actor=current_user,
+        action="run_rejected",
+        resource_id=run_id,
+        payload={"run_id": run_id, "incident_id": run.incident_id, "reason": reason},
     )
     return {"run_id": run_id, "decision": "rejected", "by": current_user}

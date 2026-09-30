@@ -37,6 +37,15 @@ class AgentRun(BaseModel):
     confidence: float | None = None
 
 
+class AuditLogEntry(BaseModel):
+    id: str
+    actor: str
+    action: str
+    resource_id: str | None = None
+    payload: dict[str, object] = Field(default_factory=dict)
+    created_at: datetime
+
+
 class ExecuteIncidentRequest(BaseModel):
     incident_id: str
 

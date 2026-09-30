@@ -7,8 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..metrics import observe_agent_run_duration, observe_incident_mttr
-from ..models import AgentRun, Incident
-from .orm_models import AgentRunRow, IncidentRow, UserRow
+from ..models import AgentRun, AuditLogEntry, Incident
+from .orm_models import AgentRunRow, AuditLogRow, IncidentRow, UserRow
 
 # ---------------------------------------------------------------------------
 # Conversion helpers
@@ -44,6 +44,17 @@ def _row_to_run(row: AgentRunRow) -> AgentRun:
     )
 
 
+def _row_to_audit_log(row: AuditLogRow) -> AuditLogEntry:
+    return AuditLogEntry(
+        id=row.id,
+        actor=row.actor,
+        action=row.action,
+        resource_id=row.resource_id,
+        payload=dict(row.payload or {}),
+        created_at=row.created_at,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Incident CRUD
 # ---------------------------------------------------------------------------
@@ -75,6 +86,18 @@ async def create_incident(db: AsyncSession, incident: Incident) -> Incident:
     db.add(row)
     await db.commit()
     await db.refresh(row)
+    await log_audit_event(
+        db,
+        actor="system",
+        action="incident_created",
+        resource_id=row.id,
+        payload={
+            "incident_id": row.id,
+            "service": row.service,
+            "severity": row.severity,
+            "title": row.title,
+        },
+    )
     return _row_to_incident(row)
 
 
@@ -103,6 +126,17 @@ async def update_incident(
 
     await db.commit()
     await db.refresh(row)
+    await log_audit_event(
+        db,
+        actor="system",
+        action="incident_status_changed",
+        resource_id=row.id,
+        payload={
+            "incident_id": row.id,
+            "status": status or row.status,
+            "summary": row.summary,
+        },
+    )
     return _row_to_incident(row)
 
 
@@ -136,6 +170,13 @@ async def create_agent_run(
     db.add(row)
     await db.commit()
     await db.refresh(row)
+    await log_audit_event(
+        db,
+        actor="system",
+        action="agent_run_queued",
+        resource_id=row.id,
+        payload={"incident_id": incident_id, "agent_name": agent_name, "summary": summary},
+    )
     return _row_to_run(row)
 
 
@@ -157,6 +198,18 @@ async def complete_agent_run(
     observe_agent_run_duration((row.finished_at - row.started_at).total_seconds())
     await db.commit()
     await db.refresh(row)
+    await log_audit_event(
+        db,
+        actor="system",
+        action="agent_run_completed",
+        resource_id=row.id,
+        payload={
+            "incident_id": row.incident_id,
+            "status": status,
+            "confidence": confidence,
+            "summary": summary,
+        },
+    )
     return _row_to_run(row)
 
 
@@ -227,4 +280,65 @@ async def update_agent_run_status(
         row.finished_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(row)
+    await log_audit_event(
+        db,
+        actor="system",
+        action="agent_run_status_changed",
+        resource_id=row.id,
+        payload={"incident_id": row.incident_id, "status": status},
+    )
     return _row_to_run(row)
+
+
+async def log_audit_event(
+    db: AsyncSession,
+    *,
+    actor: str,
+    action: str,
+    resource_id: str | None,
+    payload: dict | None = None,
+) -> AuditLogEntry:
+    """Persist a single immutable audit event for compliance and investigations."""
+    row = AuditLogRow(
+        id=f"AUD-{uuid4().hex[:12].upper()}",
+        actor=actor,
+        action=action,
+        resource_id=resource_id,
+        payload=dict(payload or {}),
+        created_at=datetime.now(UTC),
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+    return _row_to_audit_log(row)
+
+
+async def list_audit_logs(
+    db: AsyncSession,
+    *,
+    incident_id: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[AuditLogEntry]:
+    """Return audit entries in reverse chronological order.
+
+    Filter by incident either via the record's ``resource_id`` or by a JSON payload
+    field named ``incident_id`` for run-scoped events.
+    """
+    result = await db.execute(select(AuditLogRow).order_by(AuditLogRow.created_at.desc()))
+    rows = sorted(
+        list(result.scalars().all()),
+        key=lambda row: row.created_at,
+        reverse=True,
+    )
+
+    if incident_id is not None:
+        rows = [
+            row
+            for row in rows
+            if row.resource_id == incident_id
+            or (row.payload or {}).get("incident_id") == incident_id
+        ]
+
+    rows = rows[offset : offset + limit]
+    return [_row_to_audit_log(row) for row in rows]
