@@ -1,0 +1,19 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Provider plugins and modules
+.terraform/
+.terraform.lock.hcl
+
+# Sensitive vars
+*.tfvars
+!example.tfvars
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Plan output
+*.tfplan

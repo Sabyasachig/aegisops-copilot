@@ -1,6 +1,6 @@
 # Future Scope — AegisOps Copilot
 
-## Current State Checkpoint (2026-09-30)
+## Current State Checkpoint (2026-10-01)
 
 This section is the session handoff snapshot so future work starts from the
 latest known state without rediscovery.
@@ -25,22 +25,51 @@ latest known state without rediscovery.
 - Issue #16 (Audit Log): merged to `main` via PR #40
 - Issue #17 (OpsGenie & Alertmanager Webhook Handlers): merged to `main` via PR #41
 - Issue #18 (Slack Notification on Run Completion): merged to `main` via PR #42
+- Issue #20 (Kubernetes Helm Chart): merged to `main` via PR #43
 
 ### Current active implementation
 
-- Issue #20 (Kubernetes Helm Chart) — in progress on branch
-  `feat/issue-20-helm-chart`
+- Issue #21 (Managed Database & Cache — Cloud-Ready) — in progress on branch
+  `feat/issue-21-managed-db-cache`
 
 ### Recently completed
 
-- Issue #18: PR #42 merged; `notifications.py` with async Slack Block Kit
-  builders for `notify_run_completed` (done/blocked/rejected) and
-  `notify_run_needs_human` (with Approve / Reject / Open deep-links); two
-  new settings `slack_notifications_enabled` and `public_base_url`;
-  lifecycle hooks in `tasks._execute_async` that swallow exceptions so
-  Slack failures never break the workflow; 10 new tests in
-  `test_notifications.py`.
-- Validation: `208 passed, 1 warning` on PR #42.
+- Issue #20: PR #43 merged; Helm chart under `deploy/helm/aegisops/`
+  packaging FastAPI API, Celery worker, and Next.js dashboard with
+  ConfigMap+Secret env wiring, HPAs, PDBs, `/api/health` probes, optional
+  in-cluster Postgres/Redis subcharts for dev, and a `helm test` hook. 8
+  new tests in `test_helm_chart.py`.
+- Validation: `216 passed, 1 warning` on PR #43.
+
+### Issue #21 implementation notes (local branch)
+
+- No application code changes required — the existing `pydantic-settings`
+  surface (`AIOPS_DATABASE_URL`, `AIOPS_REDIS_URL`, `AIOPS_CELERY_BROKER_URL`,
+  `AIOPS_CELERY_RESULT_BACKEND`, `AIOPS_RATE_LIMIT_STORAGE_URI`) already
+  satisfies the "URLs are the only required change" contract.
+- New `docs/managed-services.md` migration guide covering AWS (RDS +
+  ElastiCache) and GCP (Cloud SQL + Memorystore) paths, including the
+  `ExternalSecrets` wiring that populates the Helm-referenced `Secret` from
+  a cloud secret manager.
+- New Terraform module under `deploy/terraform/aws/` (`versions.tf`,
+  `variables.tf`, `main.tf`, `outputs.tf`, `example.tfvars`, `README.md`,
+  `.gitignore`). Provisions RDS PostgreSQL 16 + ElastiCache Redis 7
+  replication group + dedicated security groups + a Secrets Manager secret
+  containing the five ready-to-use `AIOPS_*` URLs. Multi-AZ by default,
+  transit + at-rest encryption enabled, deletion protection on.
+- Helm chart secret extended with `rateLimitStorageUri` so managed
+  installs can point slowapi at the same managed Redis (previously the
+  field defaulted to `redis://localhost:6379/3` with no chart hook).
+- 10 new tests in `test_managed_services.py`: settings surface contract
+  (class defaults still URL-based), managed-services doc coverage (both
+  clouds + all five env vars), Terraform module structure and outputs
+  (`database_url`, `redis_url`, `celery_broker_url`, `celery_result_backend`,
+  `rate_limit_storage_uri`, `secrets_manager_arn`), Helm secret
+  wiring for `AIOPS_RATE_LIMIT_STORAGE_URI` (both static and
+  helm-template-driven).
+- Validation: `10 passed` (targeted `test_managed_services.py`),
+  `18 passed` (`test_managed_services.py` + `test_helm_chart.py`),
+  `226 passed, 1 warning` (full suite).
 
 ### Issue #20 implementation notes (local branch)
 
