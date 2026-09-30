@@ -16,7 +16,7 @@ Before any coding, always read these files in order:
 
 Do not ask for a project overview if these files are available.
 
-## Project Status Snapshot (2026-08-31)
+## Project Status Snapshot (2026-09-30)
 
 - Security/auth baseline is implemented (JWT, RBAC, webhook HMAC, rate limits).
 - Async execution path is implemented (queue + status polling).
@@ -29,7 +29,24 @@ Do not ask for a project overview if these files are available.
 - Tool integrations K8s/Datadog/Slack/Jira (Issue #12) is merged to `main` via PR #36.
 - Agent memory + pgvector context store (Issue #13) is merged to `main` via PR #37.
 - RAG runbook knowledge base (Issue #14) is merged to `main` via PR #38.
-- Issues #6, #7, #8, #9, #10, #11, #12, #13, #14 are closed.
+- Confidence scoring + auto-escalation (Issue #15) is merged to `main` via PR #39.
+- Audit log (Issue #16) is merged to `main` via PR #40.
+- OpsGenie & Alertmanager webhook handlers (Issue #17) is merged to `main` via PR #41.
+- Issues #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17 are closed.
+- **Active work:** Issue #18 (Slack notification on run completion) on branch
+  `feat/issue-18-slack-notifications`. Test checkpoint: `10 passed` targeted,
+  `208 passed, 1 warning` full suite.
+
+## Files changed for Issue #18
+
+- `apps/api/src/aegisops_api/notifications.py` (new) — async Slack Block Kit
+  builders + `notify_run_completed` / `notify_run_needs_human` sinks
+- `apps/api/src/aegisops_api/settings.py` — new fields
+  `slack_notifications_enabled`, `public_base_url`
+- `apps/api/src/aegisops_api/tasks.py` — lifecycle hooks after
+  `update_agent_run_status(...,"needs_human")` and `complete_agent_run(...)`
+  (both swallow exceptions so Slack failures never break the workflow)
+- `apps/api/tests/test_notifications.py` (new) — 10 unit tests
 
 ## Files changed for Issue #12
 

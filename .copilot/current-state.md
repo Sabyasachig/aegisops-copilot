@@ -26,14 +26,14 @@ Last updated: 2026-09-30
 - Issue #14: RAG runbook knowledge base (merged to main via PR #38)
 - Issue #15: confidence scoring + auto-escalation (merged to main via PR #39)
 - Issue #16: audit log (merged to main via PR #40)
+- Issue #17: OpsGenie & Alertmanager webhook handlers (merged to main via PR #41)
 
 ## Active Work
 
-- Issue #17: OpsGenie & Alertmanager webhook handlers (branch `feat/issue-17-webhook-integrations`)
+- Issue #18: Slack notification on run completion (branch `feat/issue-18-slack-notifications`)
 
 ## Open Issues Snapshot
 
-- #17 OpsGenie and Alertmanager webhook handlers
 - #18 Slack notification on run completion
 - #20 Kubernetes Helm chart
 - #21 managed database and cache
@@ -41,11 +41,11 @@ Last updated: 2026-09-30
 
 ## Next Suggested Issue
 
-- #18 Slack notification on run completion (after #17 merges)
+- #20 Kubernetes Helm chart (after #18 merges)
 
 ## Session Resume Rule
 
 On next session start:
 1. read `execute-steps.md`
 2. read this file (`.copilot/current-state.md`)
-3. continue Issue #17 on branch `feat/issue-17-webhook-integrations`, or start Issue #18 if #17 is merged
+3. continue Issue #18 on branch `feat/issue-18-slack-notifications`, or start Issue #20 if #18 is merged

@@ -1,6 +1,6 @@
 # Future Scope — AegisOps Copilot
 
-## Current State Checkpoint (2026-08-31)
+## Current State Checkpoint (2026-09-30)
 
 This section is the session handoff snapshot so future work starts from the
 latest known state without rediscovery.
@@ -21,28 +21,50 @@ latest known state without rediscovery.
 - Issue #12 (Tool Integrations — K8s, Datadog, Slack, Jira): merged to `main` via PR #36
 - Issue #13 (Agent Memory + Context Store — pgvector): merged to `main` via PR #37
 - Issue #14 (RAG Runbook Knowledge Base): merged to `main` via PR #38
+- Issue #15 (Confidence Scoring + Auto-Escalation): merged to `main` via PR #39
+- Issue #16 (Audit Log): merged to `main` via PR #40
+- Issue #17 (OpsGenie & Alertmanager Webhook Handlers): merged to `main` via PR #41
 
 ### Current active implementation
 
-- Issue #15 (Confidence Scoring + Auto-Escalation) — up next on branch `feat/issue-15-confidence-scoring`
+- Issue #18 (Slack Notification on Run Completion) — in progress on branch
+  `feat/issue-18-slack-notifications`
 
 ### Recently completed
 
-- Issue #14: PR #38 merged; `RunbookRow` ORM + word-based chunker + cosine retrieval in `memory.py`;
-  `gather_evidence` injects top-k runbook chunks into system prompt; `POST /api/admin/runbooks`
-  endpoint (admin-only); startup ingestion from `AIOPS_RUNBOOK_DIR`; Alembic migration 0005;
-  `test_runbooks.py` (15 new tests)
-- Validation: `157 passed, 1 warning` (full test suite)
+- Issue #17: PR #41 merged; `POST /api/webhooks/opsgenie` and
+  `POST /api/webhooks/alertmanager` with HMAC verification, priority/severity
+  mapping helpers (`_map_opsgenie_priority`, `_map_alertmanager_severity`),
+  incident-id prefixing (`OG-`, `AM-`), 24 new tests in
+  `test_webhooks_extended.py`. Also bundled the audit-trail dashboard UI
+  (Issue #16 follow-up).
+- Validation: `198 passed, 1 warning` (full test suite on the #17 branch).
+
+### Issue #18 implementation notes (local branch)
+
+- New module `apps/api/src/aegisops_api/notifications.py` — pure async
+  notification sink with Slack Block Kit payload builders for two lifecycle
+  events:
+  - `notify_run_completed(...)` for terminal statuses `done` / `blocked` /
+    `rejected` (color-coded good / warning / danger, severity emoji, "Open
+    incident" deep-link).
+  - `notify_run_needs_human(...)` for `needs_human` approvals — renders
+    Approve / Reject / Open buttons with `?run=<id>&decision=<approve|reject>`
+    query params on the dashboard base URL.
+- Two new settings on `Settings`:
+  - `slack_notifications_enabled: bool = False` (opt-in feature flag)
+  - `public_base_url: str = "http://localhost:3000"` (deep-link base)
+- Wired into `tasks.py` at the two lifecycle hook points immediately after
+  `update_agent_run_status(...,"needs_human")` and `complete_agent_run(...)`.
+  Both call sites swallow exceptions so Slack failures never break the
+  workflow.
+- 10 new unit tests in `test_notifications.py` covering feature-flag / dry-run
+  behaviour, Block Kit payload shape per terminal status, needs-human
+  Approve/Reject deep-link URLs, HTTP error swallowing, and settings smoke.
+- Validation: `10 passed` (targeted) and `208 passed, 1 warning` (full suite).
 
 ### Open issues currently visible on GitHub
 
-- #11 Human-in-the-Loop Approval Gate
-- #12 Tool Use — Real Integrations
-- #13 Agent Memory & Context Store (pgvector)
-- #14 RAG Runbook Knowledge Base
-- #15 Confidence Scoring & Auto-Escalation
-- #16 Audit Log
-- #17 OpsGenie & Alertmanager Webhook Handlers
 - #18 Slack Notification on Run Completion
 - #20 Kubernetes Helm Chart
 - #21 Managed Database & Cache (Cloud-Ready)

@@ -70,6 +70,13 @@ class Settings(BaseSettings):
     datadog_site: str = "datadoghq.com"
     slack_webhook_url: str | None = None
     slack_default_channel: str = "#incidents"
+    # Slack run-lifecycle notifications (Issue #18) — separate opt-in from the
+    # LLM-agent ``slack_post_incident_summary`` tool; when disabled the
+    # notifications module is a silent no-op.
+    slack_notifications_enabled: bool = False
+    # Base URL used to build deep-links in Slack (Approve / Reject / Open
+    # incident) back to the AegisOps dashboard.
+    public_base_url: str = "http://localhost:3000"
     jira_url: str | None = None
     jira_email: str | None = None
     jira_api_token: str | None = None
