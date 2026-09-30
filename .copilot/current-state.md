@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ## Repo
 
@@ -28,24 +28,26 @@ Last updated: 2026-09-30
 - Issue #16: audit log (merged to main via PR #40)
 - Issue #17: OpsGenie & Alertmanager webhook handlers (merged to main via PR #41)
 - Issue #18: Slack notification on run completion (merged to main via PR #42)
+- Issue #20: Kubernetes Helm chart (merged to main via PR #43)
 
 ## Active Work
 
-- Issue #20: Kubernetes Helm chart (branch `feat/issue-20-helm-chart`)
+- Issue #21: Managed Database & Cache (Cloud-Ready) — branch `feat/issue-21-managed-db-cache`
 
 ## Open Issues Snapshot
 
-- #20 Kubernetes Helm chart
+- #16 audit log (implemented via PR #40 — needs manual close, PR body omitted `Closes #16`)
+- #17 OpsGenie & Alertmanager webhook handlers (implemented via PR #41 — needs manual close)
 - #21 managed database and cache
 - #22 LLM cost tracking per run
 
 ## Next Suggested Issue
 
-- #21 managed database and cache (after #20 merges)
+- #22 LLM cost tracking per run (after #21 merges)
 
 ## Session Resume Rule
 
 On next session start:
 1. read `execute-steps.md`
 2. read this file (`.copilot/current-state.md`)
-3. continue Issue #20 on branch `feat/issue-20-helm-chart`, or start Issue #21 if #20 is merged
+3. continue Issue #21 on branch `feat/issue-21-managed-db-cache`, or start Issue #22 if #21 is merged

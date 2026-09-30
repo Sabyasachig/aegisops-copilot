@@ -16,7 +16,7 @@ Before any coding, always read these files in order:
 
 Do not ask for a project overview if these files are available.
 
-## Project Status Snapshot (2026-09-30)
+## Project Status Snapshot (2026-10-01)
 
 - Security/auth baseline is implemented (JWT, RBAC, webhook HMAC, rate limits).
 - Async execution path is implemented (queue + status polling).
@@ -33,11 +33,30 @@ Do not ask for a project overview if these files are available.
 - Audit log (Issue #16) is merged to `main` via PR #40.
 - OpsGenie & Alertmanager webhook handlers (Issue #17) is merged to `main` via PR #41.
 - Slack notification on run completion (Issue #18) is merged to `main` via PR #42.
-- Issues #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18 are closed.
-- **Active work:** Issue #20 (Kubernetes Helm chart) on branch
-  `feat/issue-20-helm-chart`. Test checkpoint: `8 passed` targeted,
-  `216 passed, 1 warning` full suite. Chart lives at
-  `deploy/helm/aegisops/` and passes `helm lint` cleanly.
+- Kubernetes Helm chart (Issue #20) is merged to `main` via PR #43.
+- Issues #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #18, #20 are closed. (Issues #16 and #17 remain OPEN despite being implemented — PR #40 and #41 bodies omitted the `Closes #<n>` reference so GitHub did not auto-close them; safe to close manually.)
+- **Active work:** Issue #21 (Managed Database & Cache — Cloud-Ready) on
+  branch `feat/issue-21-managed-db-cache`. Test checkpoint: `10 passed`
+  targeted (`test_managed_services.py`), `226 passed, 1 warning` full
+  suite. Deliverables: `docs/managed-services.md` migration guide (AWS +
+  GCP), Terraform module under `deploy/terraform/aws/`, Helm secret
+  extended with `rateLimitStorageUri`.
+
+## Files changed for Issue #21
+
+- `docs/managed-services.md` (new) — AWS RDS+ElastiCache and GCP
+  Cloud SQL+Memorystore migration guide with ExternalSecrets wiring
+- `deploy/terraform/aws/{versions,variables,main,outputs}.tf` (new) —
+  Terraform module provisioning RDS Postgres 16 + ElastiCache Redis 7 +
+  Secrets Manager secret with the five ready-to-use `AIOPS_*` URLs
+- `deploy/terraform/aws/{README.md,example.tfvars,.gitignore}` (new)
+- `deploy/helm/aegisops/values.yaml` — added
+  `secret.data.rateLimitStorageUri` field
+- `deploy/helm/aegisops/templates/secret.yaml` — renders
+  `AIOPS_RATE_LIMIT_STORAGE_URI` when set
+- `apps/api/tests/test_managed_services.py` (new) — 10 tests covering
+  settings surface contract, docs coverage, Terraform module
+  structure/outputs, and Helm secret wiring
 
 ## Files changed for Issue #20
 

@@ -82,6 +82,11 @@ secret:
     redisUrl: ""     # e.g. redis://host:6379/0
     celeryBrokerUrl: ""
     celeryResultBackend: ""
+    ## slowapi / limits-format Redis DSN for per-IP + per-user rate limiting.
+    ## Defaults empty — the application falls back to
+    ## AIOPS_REDIS_URL/3 when unset. Point at the same managed Redis for
+    ## production installs.
+    rateLimitStorageUri: ""
     webhookSecret: ""
     groqApiKey: ""
     openaiApiKey: ""
