@@ -6,9 +6,19 @@ export interface ApiProviderInfo {
   tracing_enabled: boolean;
 }
 
+export interface AuditLogEntry {
+  id: string;
+  actor: string;
+  action: string;
+  resource_id: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface DashboardSnapshot {
   incidents: IncidentOverview[];
   provider: ApiProviderInfo | null;
+  auditLogs: AuditLogEntry[];
 }
 
 function getApiBaseUrl() {
@@ -17,6 +27,8 @@ function getApiBaseUrl() {
 
 export async function loadDashboardSnapshot(): Promise<DashboardSnapshot> {
   const apiBaseUrl = getApiBaseUrl();
+
+  const auditLogs = await loadRecentAuditLogs(apiBaseUrl);
 
   try {
     const [incidentsResponse, providerResponse] = await Promise.all([
@@ -33,12 +45,27 @@ export async function loadDashboardSnapshot(): Promise<DashboardSnapshot> {
 
     return {
       incidents: Array.isArray(incidentsPayload.incidents) ? incidentsPayload.incidents : incidentQueue,
-      provider: providerPayload as ApiProviderInfo
+      provider: providerPayload as ApiProviderInfo,
+      auditLogs
     };
   } catch {
     return {
       incidents: incidentQueue,
-      provider: null
+      provider: null,
+      auditLogs
     };
+  }
+}
+
+async function loadRecentAuditLogs(apiBaseUrl: string): Promise<AuditLogEntry[]> {
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/audit?limit=10`, { cache: "no-store" });
+    if (!response.ok) {
+      return [];
+    }
+    const payload = await response.json();
+    return Array.isArray(payload.audit_logs) ? (payload.audit_logs as AuditLogEntry[]) : [];
+  } catch {
+    return [];
   }
 }
