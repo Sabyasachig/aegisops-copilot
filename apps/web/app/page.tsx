@@ -204,6 +204,41 @@ export default async function HomePage() {
           </div>
         </article>
       </section>
+
+      <section className="audit-panel" id="audit">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Audit trail</span>
+            <h2>Immutable log of every agent action and human decision.</h2>
+          </div>
+          <span className="section-chip">
+            <Clock3 size={14} />
+            Latest {snapshot.auditLogs.length} events
+          </span>
+        </div>
+
+        {snapshot.auditLogs.length === 0 ? (
+          <p className="audit-empty">
+            No audit events available. Sign in as an operator to view the audit trail at
+            <code>GET /api/audit</code>.
+          </p>
+        ) : (
+          <ul className="audit-list">
+            {snapshot.auditLogs.map((entry) => (
+              <li className="audit-entry" key={entry.id}>
+                <div className="audit-entry-top">
+                  <strong>{entry.action}</strong>
+                  <span className="audit-actor">{entry.actor}</span>
+                </div>
+                <div className="audit-meta">
+                  <span>{entry.resource_id ?? "—"}</span>
+                  <span>{new Date(entry.created_at).toLocaleString()}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </main>
   );
 }
