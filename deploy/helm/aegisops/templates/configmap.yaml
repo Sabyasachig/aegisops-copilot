@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "aegisops.configMapName" . }}
+  labels:
+    {{- include "aegisops.labels" . | nindent 4 }}
+data:
+  AIOPS_ENVIRONMENT: {{ .Values.global.environment | quote }}
+  AIOPS_LOG_FORMAT: {{ .Values.config.logFormat | quote }}
+  AIOPS_LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  AIOPS_LLM_PROVIDER: {{ .Values.config.llmProvider | quote }}
+  AIOPS_LLM_MODEL: {{ .Values.config.llmModel | quote }}
+  AIOPS_CORS_ORIGINS: {{ .Values.config.corsOrigins | quote }}
+  AIOPS_PUBLIC_BASE_URL: {{ .Values.config.publicBaseUrl | quote }}
+  AIOPS_SLACK_DEFAULT_CHANNEL: {{ .Values.config.slackDefaultChannel | quote }}
+  AIOPS_SLACK_NOTIFICATIONS_ENABLED: {{ .Values.config.slackNotificationsEnabled | quote }}
+  AIOPS_TRACING_ENABLED: {{ .Values.config.tracingEnabled | quote }}
+  AIOPS_OTEL_SERVICE_NAME: {{ .Values.config.otelServiceName | quote }}
+  AIOPS_OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.otelExporterOtlpEndpoint | quote }}
+  AIOPS_API_HOST: "0.0.0.0"
+  AIOPS_API_PORT: {{ .Values.api.containerPort | quote }}
+  {{- with .Values.config.extra }}
+  {{- range $key, $value := . }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}

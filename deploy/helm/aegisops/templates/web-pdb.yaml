@@ -1,0 +1,13 @@
+{{- if and .Values.web.enabled .Values.podDisruptionBudget.web.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "aegisops.webName" . }}
+  labels:
+    {{- include "aegisops.componentLabels" (dict "root" . "component" "web") | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.web.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "aegisops.componentSelectorLabels" (dict "root" . "component" "web") | nindent 6 }}
+{{- end }}

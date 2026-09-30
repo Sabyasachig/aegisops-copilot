@@ -1,0 +1,21 @@
+{{- if .Values.web.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aegisops.webName" . }}
+  labels:
+    {{- include "aegisops.componentLabels" (dict "root" . "component" "web") | nindent 4 }}
+  {{- with .Values.web.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.web.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.web.service.port }}
+      targetPort: {{ .Values.web.service.targetPort }}
+      protocol: TCP
+  selector:
+    {{- include "aegisops.componentSelectorLabels" (dict "root" . "component" "web") | nindent 4 }}
+{{- end }}

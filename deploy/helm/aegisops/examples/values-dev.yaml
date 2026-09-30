@@ -1,0 +1,87 @@
+# Example override — local dev / demo cluster (minikube, kind, colima).
+#
+#   helm install aegisops ./deploy/helm/aegisops \
+#     -n aegisops --create-namespace \
+#     -f deploy/helm/aegisops/examples/values-dev.yaml
+#
+# Runs Postgres + Redis in-cluster, disables autoscaling and Ingress,
+# and uses safe-but-unsuitable-for-prod default secrets.
+
+global:
+  imageRegistry: ghcr.io
+  environment: development
+
+image:
+  api:
+    tag: "latest"
+  worker:
+    tag: "latest"
+  web:
+    tag: "latest"
+
+config:
+  logFormat: "console"
+  logLevel: "DEBUG"
+  corsOrigins: "http://localhost:3000"
+  publicBaseUrl: "http://localhost:3000"
+  slackNotificationsEnabled: "false"
+  tracingEnabled: "false"
+
+secret:
+  create: true
+  data:
+    jwtSecretKey: "dev-only-secret"
+    initialAdminPassword: "devpass123"
+    databaseUrl: "postgresql+asyncpg://aegisops:aegisops@aegisops-postgres:5432/aegisops"
+    redisUrl: "redis://aegisops-redis:6379/0"
+    celeryBrokerUrl: "redis://aegisops-redis:6379/1"
+    celeryResultBackend: "redis://aegisops-redis:6379/2"
+
+api:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+worker:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+web:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  publicApiBaseUrl: "http://aegisops-api"
+
+ingress:
+  enabled: false
+
+postgres:
+  enabled: true
+  persistence:
+    enabled: false  # emptyDir — data disappears on pod restart
+
+redis:
+  enabled: true
+  persistence:
+    enabled: false
+
+podDisruptionBudget:
+  api:
+    enabled: false
+  web:
+    enabled: false

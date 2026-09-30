@@ -32,10 +32,35 @@ Do not ask for a project overview if these files are available.
 - Confidence scoring + auto-escalation (Issue #15) is merged to `main` via PR #39.
 - Audit log (Issue #16) is merged to `main` via PR #40.
 - OpsGenie & Alertmanager webhook handlers (Issue #17) is merged to `main` via PR #41.
-- Issues #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17 are closed.
-- **Active work:** Issue #18 (Slack notification on run completion) on branch
-  `feat/issue-18-slack-notifications`. Test checkpoint: `10 passed` targeted,
-  `208 passed, 1 warning` full suite.
+- Slack notification on run completion (Issue #18) is merged to `main` via PR #42.
+- Issues #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18 are closed.
+- **Active work:** Issue #20 (Kubernetes Helm chart) on branch
+  `feat/issue-20-helm-chart`. Test checkpoint: `8 passed` targeted,
+  `216 passed, 1 warning` full suite. Chart lives at
+  `deploy/helm/aegisops/` and passes `helm lint` cleanly.
+
+## Files changed for Issue #20
+
+- `deploy/helm/aegisops/Chart.yaml` (new) — chart metadata
+- `deploy/helm/aegisops/values.yaml` (new) — sane production defaults with
+  opt-in Postgres/Redis/Ingress subcharts
+- `deploy/helm/aegisops/.helmignore` (new)
+- `deploy/helm/aegisops/README.md` (new) — usage + production checklist
+- `deploy/helm/aegisops/templates/_helpers.tpl` (new) — name/label helpers
+- `deploy/helm/aegisops/templates/{configmap,secret,serviceaccount}.yaml` (new)
+- `deploy/helm/aegisops/templates/api-{deployment,service,hpa,pdb}.yaml` (new)
+  — `/api/health` liveness + readiness probes on the API deployment
+- `deploy/helm/aegisops/templates/worker-{deployment,hpa}.yaml` (new)
+- `deploy/helm/aegisops/templates/web-{deployment,service,hpa,pdb}.yaml` (new)
+- `deploy/helm/aegisops/templates/ingress.yaml` (new)
+- `deploy/helm/aegisops/templates/{postgres-statefulset,redis-deployment}.yaml`
+  (new) — optional dev/demo subcharts
+- `deploy/helm/aegisops/templates/tests/test-api-health.yaml` (new) —
+  `helm test` hook that probes `/api/health`
+- `deploy/helm/aegisops/templates/NOTES.txt` (new)
+- `deploy/helm/aegisops/examples/values-dev.yaml` (new) — local override
+- `apps/api/tests/test_helm_chart.py` (new) — 8 tests including `helm lint`
+  and `helm template` verification
 
 ## Files changed for Issue #18
 

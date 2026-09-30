@@ -24,48 +24,58 @@ latest known state without rediscovery.
 - Issue #15 (Confidence Scoring + Auto-Escalation): merged to `main` via PR #39
 - Issue #16 (Audit Log): merged to `main` via PR #40
 - Issue #17 (OpsGenie & Alertmanager Webhook Handlers): merged to `main` via PR #41
+- Issue #18 (Slack Notification on Run Completion): merged to `main` via PR #42
 
 ### Current active implementation
 
-- Issue #18 (Slack Notification on Run Completion) — in progress on branch
-  `feat/issue-18-slack-notifications`
+- Issue #20 (Kubernetes Helm Chart) — in progress on branch
+  `feat/issue-20-helm-chart`
 
 ### Recently completed
 
-- Issue #17: PR #41 merged; `POST /api/webhooks/opsgenie` and
-  `POST /api/webhooks/alertmanager` with HMAC verification, priority/severity
-  mapping helpers (`_map_opsgenie_priority`, `_map_alertmanager_severity`),
-  incident-id prefixing (`OG-`, `AM-`), 24 new tests in
-  `test_webhooks_extended.py`. Also bundled the audit-trail dashboard UI
-  (Issue #16 follow-up).
-- Validation: `198 passed, 1 warning` (full test suite on the #17 branch).
+- Issue #18: PR #42 merged; `notifications.py` with async Slack Block Kit
+  builders for `notify_run_completed` (done/blocked/rejected) and
+  `notify_run_needs_human` (with Approve / Reject / Open deep-links); two
+  new settings `slack_notifications_enabled` and `public_base_url`;
+  lifecycle hooks in `tasks._execute_async` that swallow exceptions so
+  Slack failures never break the workflow; 10 new tests in
+  `test_notifications.py`.
+- Validation: `208 passed, 1 warning` on PR #42.
 
-### Issue #18 implementation notes (local branch)
+### Issue #20 implementation notes (local branch)
 
-- New module `apps/api/src/aegisops_api/notifications.py` — pure async
-  notification sink with Slack Block Kit payload builders for two lifecycle
-  events:
-  - `notify_run_completed(...)` for terminal statuses `done` / `blocked` /
-    `rejected` (color-coded good / warning / danger, severity emoji, "Open
-    incident" deep-link).
-  - `notify_run_needs_human(...)` for `needs_human` approvals — renders
-    Approve / Reject / Open buttons with `?run=<id>&decision=<approve|reject>`
-    query params on the dashboard base URL.
-- Two new settings on `Settings`:
-  - `slack_notifications_enabled: bool = False` (opt-in feature flag)
-  - `public_base_url: str = "http://localhost:3000"` (deep-link base)
-- Wired into `tasks.py` at the two lifecycle hook points immediately after
-  `update_agent_run_status(...,"needs_human")` and `complete_agent_run(...)`.
-  Both call sites swallow exceptions so Slack failures never break the
-  workflow.
-- 10 new unit tests in `test_notifications.py` covering feature-flag / dry-run
-  behaviour, Block Kit payload shape per terminal status, needs-human
-  Approve/Reject deep-link URLs, HTTP error swallowing, and settings smoke.
-- Validation: `10 passed` (targeted) and `208 passed, 1 warning` (full suite).
+- New Helm chart under `deploy/helm/aegisops/` (`Chart.yaml`, `values.yaml`,
+  `README.md`, plus 17 templates under `templates/`). Renders three
+  independently-scalable workloads:
+  - **API** — `Deployment` + `Service` + `HorizontalPodAutoscaler` +
+    `PodDisruptionBudget`, with liveness + readiness probes both targeting
+    `GET /api/health`.
+  - **Worker** — Celery worker `Deployment` + optional `HorizontalPodAutoscaler`.
+  - **Web** — Next.js dashboard `Deployment` + `Service` + HPA + PDB.
+- All non-secret `AIOPS_*` env vars flow through a single `ConfigMap`; all
+  secrets flow through a `Secret` that the chart can create *or* reference
+  via `secret.existingSecret` (recommended for prod: ExternalSecrets /
+  SealedSecrets / Vault Agent).
+- Optional in-cluster `postgres` (StatefulSet) and `redis` (Deployment)
+  subcharts for dev / demo use; both default to `enabled: false` so
+  production deployments point at managed data services via
+  `secret.data.databaseUrl` / `secret.data.redisUrl`.
+- Optional TLS-terminated `Ingress` (disabled by default).
+- Helm test hook (`helm test`) — a `curl` Pod that probes `/api/health`
+  against the API service and fails if it doesn't return 200.
+- Example dev override at
+  `deploy/helm/aegisops/examples/values-dev.yaml` (in-cluster Postgres +
+  Redis, single replica each, no HPA/PDB/Ingress).
+- 8 new tests in `test_helm_chart.py`: static structure checks (Chart.yaml
+  fields, required templates present, new settings surfaced in values.yaml)
+  plus `helm lint` + `helm template` verification (kinds, probes,
+  ConfigMap/Secret refs, dev-overrides toggle Postgres/Redis).
+  Helm-driven tests skip gracefully when `helm` is missing from `PATH`.
+- Validation: `8 passed` (targeted) and `216 passed, 1 warning`
+  (full suite).
 
 ### Open issues currently visible on GitHub
 
-- #18 Slack Notification on Run Completion
 - #20 Kubernetes Helm Chart
 - #21 Managed Database & Cache (Cloud-Ready)
 - #22 LLM Cost Tracking per Run

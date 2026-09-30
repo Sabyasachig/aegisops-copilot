@@ -1,0 +1,43 @@
+{{/*
+NOTES.txt — printed after `helm install` / `helm upgrade`.
+*/}}
+Thanks for installing AegisOps Copilot chart {{ .Chart.Name }}-{{ .Chart.Version }}.
+
+Release name: {{ .Release.Name }}
+Namespace:    {{ .Release.Namespace }}
+
+Workloads deployed:
+{{- if .Values.api.enabled }}
+  • API server:  {{ include "aegisops.apiName" . }} ({{ .Values.api.replicaCount }} replica(s), HPA={{ .Values.api.autoscaling.enabled }})
+{{- end }}
+{{- if .Values.worker.enabled }}
+  • Celery worker: {{ include "aegisops.workerName" . }} ({{ .Values.worker.replicaCount }} replica(s))
+{{- end }}
+{{- if .Values.web.enabled }}
+  • Web dashboard: {{ include "aegisops.webName" . }} ({{ .Values.web.replicaCount }} replica(s), HPA={{ .Values.web.autoscaling.enabled }})
+{{- end }}
+{{- if .Values.postgres.enabled }}
+  • In-cluster Postgres (dev/demo only): {{ include "aegisops.postgresName" . }}
+{{- end }}
+{{- if .Values.redis.enabled }}
+  • In-cluster Redis (dev/demo only): {{ include "aegisops.redisName" . }}
+{{- end }}
+
+Health-check probes: liveness + readiness both target GET /api/health.
+
+{{- if not .Values.ingress.enabled }}
+
+No Ingress is configured. To reach the API from your workstation:
+
+    kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "aegisops.apiName" . }} 4001:{{ .Values.api.service.port }}
+    curl http://localhost:4001/api/health
+
+{{- else }}
+
+Ingress enabled — access the app at:
+{{- range .Values.ingress.hosts }}
+  https://{{ .host }}
+{{- end }}
+{{- end }}
+
+Run `helm test {{ .Release.Name }} -n {{ .Release.Namespace }}` to verify /api/health responds 200.

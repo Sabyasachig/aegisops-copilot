@@ -1,0 +1,11 @@
+# Patterns to ignore when packaging the chart with `helm package`.
+.DS_Store
+.git/
+.gitignore
+.editorconfig
+.idea/
+.vscode/
+*.tgz
+OWNERS
+README.md.tmpl
+tests/

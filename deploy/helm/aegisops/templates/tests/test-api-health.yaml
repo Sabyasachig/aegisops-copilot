@@ -1,0 +1,30 @@
+{{- if .Values.api.enabled -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "aegisops.fullname" . }}-test-api-health"
+  labels:
+    {{- include "aegisops.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: curl
+      image: curlimages/curl:8.9.1
+      command:
+        - sh
+        - -ec
+        - |
+          set -e
+          echo "Probing http://{{ include "aegisops.apiName" . }}:{{ .Values.api.service.port }}/api/health"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            code=$(curl -s -o /tmp/body -w "%{http_code}" "http://{{ include "aegisops.apiName" . }}:{{ .Values.api.service.port }}/api/health" || echo "000")
+            if [ "$code" = "200" ]; then
+              echo "health check OK"; cat /tmp/body; exit 0
+            fi
+            echo "attempt $i: HTTP $code — retrying"; sleep 3
+          done
+          echo "health check failed"; cat /tmp/body || true; exit 1
+{{- end }}

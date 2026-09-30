@@ -1,0 +1,90 @@
+{{- if .Values.redis.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aegisops.redisName" . }}
+  labels:
+    {{- include "aegisops.componentLabels" (dict "root" . "component" "redis") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: {{ .Values.redis.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "aegisops.componentSelectorLabels" (dict "root" . "component" "redis") | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aegisops.redisName" . }}
+  labels:
+    {{- include "aegisops.componentLabels" (dict "root" . "component" "redis") | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "aegisops.componentSelectorLabels" (dict "root" . "component" "redis") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "aegisops.componentSelectorLabels" (dict "root" . "component" "redis") | nindent 8 }}
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          args:
+            - redis-server
+            - --save
+            - "60"
+            - "1"
+            - --loglevel
+            - warning
+          ports:
+            - name: redis
+              containerPort: {{ .Values.redis.port }}
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          {{- if .Values.redis.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "aegisops.redisName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- if .Values.redis.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "aegisops.redisName" . }}
+  labels:
+    {{- include "aegisops.componentLabels" (dict "root" . "component" "redis") | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- with .Values.redis.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.persistence.size }}
+{{- end }}
+{{- end }}
