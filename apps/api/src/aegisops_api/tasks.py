@@ -161,6 +161,21 @@ async def _execute_async(
             logger.info("workflow_awaiting_approval", run_id=run_id, thread_id=thread_id)
             publish_incident_event(incident_id, "approval_required", run_id=run_id)
 
+            # Slack lifecycle notification — fire-and-forget, never blocks.
+            try:
+                from .notifications import notify_run_needs_human  # noqa: PLC0415
+
+                await notify_run_needs_human(
+                    incident_id=incident.id,
+                    incident_title=incident.title,
+                    severity=incident.severity,
+                    service=incident.service,
+                    run_id=run_id,
+                    proposed_action=result.get("next_action"),
+                )
+            except Exception as exc:  # noqa: BLE001 – notification must not break workflow
+                logger.warning("slack_notify_needs_human_failed", error=str(exc))
+
             decision = await _wait_for_approval_decision(run_id, settings.approval_timeout_seconds)
 
             if decision["action"] == "approve":
@@ -207,6 +222,23 @@ async def _execute_async(
             status=result["status"],
             confidence=result.get("confidence"),
         )
+
+        # Slack lifecycle notification on terminal states.
+        try:
+            from .notifications import notify_run_completed  # noqa: PLC0415
+
+            await notify_run_completed(
+                incident_id=incident.id,
+                incident_title=incident.title,
+                severity=incident.severity,
+                service=incident.service,
+                run_id=run_id,
+                status=result["status"],
+                summary=result["summary"],
+                next_action=result.get("next_action"),
+            )
+        except Exception as exc:  # noqa: BLE001 – notification must not break workflow
+            logger.warning("slack_notify_run_completed_failed", error=str(exc))
 
         # ── Agent memory persistence (feature-flagged) ───────────────────────
         if settings.memory_enabled and result["status"] == "done":
