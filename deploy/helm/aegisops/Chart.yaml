@@ -1,0 +1,38 @@
+apiVersion: v2
+name: aegisops
+description: |
+  AegisOps Copilot — LLM-driven incident-response agent platform.
+
+  This chart deploys the FastAPI API, Celery worker, and Next.js web
+  dashboard as three independently-scalable workloads. PostgreSQL and Redis
+  are provided as optional in-cluster subcharts for dev / demo use; managed
+  services (RDS / ElastiCache / Cloud SQL / Memorystore) are the recommended
+  production path — see values.yaml `postgres.enabled` / `redis.enabled`.
+
+type: application
+
+# Chart version — bump on any template or values.yaml change.
+version: 0.1.0
+
+# Application version — track the container image tag / release version.
+appVersion: "0.1.0"
+
+home: https://github.com/Sabyasachig/aegisops-copilot
+sources:
+  - https://github.com/Sabyasachig/aegisops-copilot
+
+kubeVersion: ">=1.25.0-0"
+
+keywords:
+  - incident-response
+  - llm
+  - langgraph
+  - observability
+  - sre
+
+maintainers:
+  - name: AegisOps team
+    url: https://github.com/Sabyasachig/aegisops-copilot
+
+annotations:
+  category: DevOpsTools

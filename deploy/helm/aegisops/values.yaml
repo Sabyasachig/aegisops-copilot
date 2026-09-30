@@ -1,0 +1,326 @@
+# -----------------------------------------------------------------------------
+# AegisOps Copilot — Helm chart values
+#
+# Sane production defaults. Every workload is independently scalable and
+# every secret is provided via a Kubernetes Secret (either created by this
+# chart or referenced from an existing secret you manage separately).
+# -----------------------------------------------------------------------------
+
+## Global settings applied to all workloads.
+global:
+  imageRegistry: ghcr.io
+  imagePullSecrets: []
+  environment: production  # matches AIOPS_ENVIRONMENT
+
+## Number of history revisions to keep for each Deployment.
+revisionHistoryLimit: 5
+
+## Common labels attached to every rendered object.
+commonLabels: {}
+## Common annotations attached to every rendered object.
+commonAnnotations: {}
+
+## ServiceAccount used by the API and worker Pods.
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+## Container image overrides.
+##
+## By default all three workloads pull from
+## `<global.imageRegistry>/sabyasachig/aegisops-<component>:<appVersion>`.
+image:
+  api:
+    repository: sabyasachig/aegisops-api
+    pullPolicy: IfNotPresent
+    tag: ""  # defaults to Chart.appVersion when empty
+  worker:
+    repository: sabyasachig/aegisops-api  # worker uses the same image as the API
+    pullPolicy: IfNotPresent
+    tag: ""
+  web:
+    repository: sabyasachig/aegisops-web
+    pullPolicy: IfNotPresent
+    tag: ""
+
+# -----------------------------------------------------------------------------
+# Non-secret configuration — rendered into a single ConfigMap and referenced
+# by every workload via `envFrom.configMapRef`. All keys are AIOPS_ prefixed
+# to match `pydantic-settings`.
+# -----------------------------------------------------------------------------
+config:
+  logFormat: "json"
+  logLevel: "INFO"
+  llmProvider: "groq"
+  llmModel: "llama-3.1-8b-instant"
+  corsOrigins: "https://aegisops.example.com"
+  publicBaseUrl: "https://aegisops.example.com"
+  slackDefaultChannel: "#incidents"
+  slackNotificationsEnabled: "false"
+  tracingEnabled: "false"
+  otelServiceName: "aegisops-api"
+  otelExporterOtlpEndpoint: "http://otel-collector:4318/v1/traces"
+  ## Any additional AIOPS_* env vars to set on all workloads.
+  extra: {}
+
+# -----------------------------------------------------------------------------
+# Secret configuration — rendered into a Kubernetes Secret. When
+# `secret.create=false` you must provide `secret.existingSecret` referencing
+# a pre-existing Secret containing the same keys (recommended for production
+# where secrets come from ExternalSecrets / SealedSecrets / Vault).
+# -----------------------------------------------------------------------------
+secret:
+  create: true
+  existingSecret: ""
+  ## All values below are optional; leave blank to let each workload run in
+  ## dry-run / degraded mode for that integration.
+  data:
+    jwtSecretKey: "CHANGE-ME-IN-PRODUCTION"
+    initialAdminPassword: "CHANGE-ME-IN-PRODUCTION"
+    databaseUrl: ""  # e.g. postgresql+asyncpg://user:pw@host:5432/aegisops
+    redisUrl: ""     # e.g. redis://host:6379/0
+    celeryBrokerUrl: ""
+    celeryResultBackend: ""
+    webhookSecret: ""
+    groqApiKey: ""
+    openaiApiKey: ""
+    anthropicApiKey: ""
+    langsmithApiKey: ""
+    slackWebhookUrl: ""
+    jiraUrl: ""
+    jiraEmail: ""
+    jiraApiToken: ""
+    jiraProjectKey: ""
+    datadogApiKey: ""
+    datadogAppKey: ""
+
+# -----------------------------------------------------------------------------
+# API deployment
+# -----------------------------------------------------------------------------
+api:
+  enabled: true
+  replicaCount: 2
+  containerPort: 4001
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 4001
+    annotations: {}
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "4001"
+    prometheus.io/path: "/metrics"
+  podSecurityContext:
+    fsGroup: 1000
+    runAsNonRoot: true
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    readOnlyRootFilesystem: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  ## Horizontal Pod Autoscaler — scales the API on CPU pressure.
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+# -----------------------------------------------------------------------------
+# Celery worker deployment
+# -----------------------------------------------------------------------------
+worker:
+  enabled: true
+  replicaCount: 2
+  command:
+    - celery
+    - -A
+    - aegisops_api.worker
+    - worker
+    - --loglevel=info
+    - --concurrency=4
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  podAnnotations: {}
+  podSecurityContext:
+    fsGroup: 1000
+    runAsNonRoot: true
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 75
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+# -----------------------------------------------------------------------------
+# Next.js web dashboard deployment
+# -----------------------------------------------------------------------------
+web:
+  enabled: true
+  replicaCount: 2
+  containerPort: 3000
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+    annotations: {}
+  publicApiBaseUrl: "http://aegisops-api"  # in-cluster service name
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  podAnnotations: {}
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# -----------------------------------------------------------------------------
+# Ingress — TLS-terminated entry point for the web dashboard and API.
+# -----------------------------------------------------------------------------
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+  hosts:
+    - host: aegisops.example.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          serviceName: aegisops-api
+          servicePort: 80
+        - path: /
+          pathType: Prefix
+          serviceName: aegisops-web
+          servicePort: 80
+  tls:
+    - secretName: aegisops-tls
+      hosts:
+        - aegisops.example.com
+
+# -----------------------------------------------------------------------------
+# Optional in-cluster PostgreSQL for dev / demo. Do NOT use in production —
+# point `secret.data.databaseUrl` at a managed DB (RDS / Cloud SQL) instead.
+# -----------------------------------------------------------------------------
+postgres:
+  enabled: false
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  port: 5432
+  auth:
+    username: aegisops
+    password: aegisops
+    database: aegisops
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+# -----------------------------------------------------------------------------
+# Optional in-cluster Redis for dev / demo.
+# -----------------------------------------------------------------------------
+redis:
+  enabled: false
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  port: 6379
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# -----------------------------------------------------------------------------
+# PodDisruptionBudget for the API (worker + web are naturally elastic).
+# -----------------------------------------------------------------------------
+podDisruptionBudget:
+  api:
+    enabled: true
+    minAvailable: 1
+  web:
+    enabled: true
+    minAvailable: 1

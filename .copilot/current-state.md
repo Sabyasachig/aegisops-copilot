@@ -27,25 +27,25 @@ Last updated: 2026-09-30
 - Issue #15: confidence scoring + auto-escalation (merged to main via PR #39)
 - Issue #16: audit log (merged to main via PR #40)
 - Issue #17: OpsGenie & Alertmanager webhook handlers (merged to main via PR #41)
+- Issue #18: Slack notification on run completion (merged to main via PR #42)
 
 ## Active Work
 
-- Issue #18: Slack notification on run completion (branch `feat/issue-18-slack-notifications`)
+- Issue #20: Kubernetes Helm chart (branch `feat/issue-20-helm-chart`)
 
 ## Open Issues Snapshot
 
-- #18 Slack notification on run completion
 - #20 Kubernetes Helm chart
 - #21 managed database and cache
 - #22 LLM cost tracking per run
 
 ## Next Suggested Issue
 
-- #20 Kubernetes Helm chart (after #18 merges)
+- #21 managed database and cache (after #20 merges)
 
 ## Session Resume Rule
 
 On next session start:
 1. read `execute-steps.md`
 2. read this file (`.copilot/current-state.md`)
-3. continue Issue #18 on branch `feat/issue-18-slack-notifications`, or start Issue #20 if #18 is merged
+3. continue Issue #20 on branch `feat/issue-20-helm-chart`, or start Issue #21 if #20 is merged
